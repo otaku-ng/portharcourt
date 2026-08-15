@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { navigation } from "@/lib/site-data";
 import { Logo } from "./logo";
+import { WhatsAppLink } from "./whatsapp-link";
 
 export function SiteFooter() {
   return (
@@ -23,6 +24,7 @@ export function SiteFooter() {
         </div>
         <div className="footer-nav">
           <span>Say hello</span>
+          <WhatsAppLink>Join the WhatsApp group</WhatsAppLink>
           <a href="mailto:ph@otaku.ng">Email the community</a>
           <Link href="/events">See what&apos;s on</Link>
           <Link href="/community#join">Become a member</Link>

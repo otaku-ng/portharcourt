@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Newsletter } from "@/components/newsletter";
 import { PageIntro } from "@/components/page-intro";
 import { communityLanes } from "@/lib/site-data";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 
 export const metadata: Metadata = {
   title: "Community",
@@ -64,7 +65,12 @@ export default function CommunityPage() {
         </div>
         <div>
           <p>Tell us what you are into and what you would like to see from the community. We will point you toward the next useful conversation or gathering.</p>
-          <Link className="button button-red" href="/contact">Introduce yourself <span>↗</span></Link>
+          <WhatsAppLink
+            className="button button-red"
+            fallback={<Link className="button button-red" href="/contact">Introduce yourself <span>↗</span></Link>}
+          >
+            Join the WhatsApp group <span>↗</span>
+          </WhatsAppLink>
         </div>
       </section>
 

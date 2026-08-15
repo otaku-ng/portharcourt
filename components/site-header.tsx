@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { navigation } from "@/lib/site-data";
 import { Logo } from "./logo";
+import { WhatsAppLink } from "./whatsapp-link";
 
 export function SiteHeader() {
   return (
@@ -12,7 +13,12 @@ export function SiteHeader() {
             <Link href={item.href} key={item.href}>{item.label}</Link>
           ))}
         </nav>
-        <Link className="button button-outline header-cta" href="/community#join">Join the crew <span>↗</span></Link>
+        <WhatsAppLink
+          className="button button-outline header-cta"
+          fallback={<Link className="button button-outline header-cta" href="/community#join">Join the crew <span>↗</span></Link>}
+        >
+          Join WhatsApp <span>↗</span>
+        </WhatsAppLink>
         <details className="mobile-menu">
           <summary aria-label="Open navigation"><span /><span /></summary>
           <nav aria-label="Mobile navigation">
@@ -20,7 +26,12 @@ export function SiteHeader() {
             {navigation.map((item) => (
               <Link href={item.href} key={item.href}>{item.label}</Link>
             ))}
-            <Link className="button button-red" href="/community#join">Join the crew <span>↗</span></Link>
+            <WhatsAppLink
+              className="button button-red"
+              fallback={<Link className="button button-red" href="/community#join">Join the crew <span>↗</span></Link>}
+            >
+              Join WhatsApp <span>↗</span>
+            </WhatsAppLink>
           </nav>
         </details>
       </div>
