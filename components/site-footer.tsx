@@ -8,15 +8,22 @@ export function SiteFooter() {
       <div className="footer-top">
         <div>
           <Logo inverse />
-          <p>Anime, manga, gaming, cosplay and creative culture—made in Port Harcourt.</p>
+          <p>
+            Anime, manga, gaming, cosplay and creative culture—made in Port
+            Harcourt.
+          </p>
         </div>
         <div className="footer-nav">
           <span>Explore</span>
-          {navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
+          {navigation.map((item) => (
+            <Link href={item.href} key={item.href}>
+              {item.label}
+            </Link>
+          ))}
         </div>
         <div className="footer-nav">
           <span>Say hello</span>
-          <a href="mailto:hello@photakus.com">Email the community</a>
+          <a href="mailto:ph@otaku.ng">Email the community</a>
           <Link href="/events">See what&apos;s on</Link>
           <Link href="/community#join">Become a member</Link>
         </div>
