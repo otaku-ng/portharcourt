@@ -2,33 +2,34 @@ import Link from "next/link";
 import { navigation } from "@/lib/site-data";
 import { Logo } from "./logo";
 import { WhatsAppLink } from "./whatsapp-link";
+import { button } from "@/lib/tailwind";
 
 export function SiteHeader() {
   return (
-    <header className="site-header">
-      <div className="header-inner">
+    <header className="sticky top-0 z-[100] h-20 border-b border-[var(--line)] bg-[rgba(255,253,248,0.94)] backdrop-blur-[14px] max-[820px]:h-[70px]">
+      <div className="mx-auto grid h-full w-[min(1240px,calc(100vw-64px))] grid-cols-[1fr_auto_1fr] items-center max-[1100px]:w-[min(calc(100%_-_40px),1080px)] max-[820px]:w-[calc(100vw_-_32px)] max-[820px]:grid-cols-[1fr_auto]">
         <Logo />
-        <nav className="desktop-nav" aria-label="Primary navigation">
+        <nav className="flex items-center gap-[30px] max-[1100px]:gap-[18px] max-[820px]:hidden" aria-label="Primary navigation">
           {navigation.map((item) => (
-            <Link href={item.href} key={item.href}>{item.label}</Link>
+            <Link className="relative text-[0.73rem] font-black tracking-[0.08em] uppercase after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand-red after:content-[''] after:transition-transform after:duration-[180ms] after:ease-in-out hover:after:scale-x-100" href={item.href} key={item.href}>{item.label}</Link>
           ))}
         </nav>
         <WhatsAppLink
-          className="button button-outline header-cta"
-          fallback={<Link className="button button-outline header-cta" href="/community#join">Join the crew <span>↗</span></Link>}
+          className={`${button} min-h-[42px] justify-self-end !border-brand-ink hover:bg-brand-ink hover:text-white max-[1100px]:gap-[14px] max-[820px]:hidden`}
+          fallback={<Link className={`${button} min-h-[42px] justify-self-end !border-brand-ink hover:bg-brand-ink hover:text-white max-[1100px]:gap-[14px] max-[820px]:hidden`} href="/community#join">Join the crew <span>↗</span></Link>}
         >
           Join WhatsApp <span>↗</span>
         </WhatsAppLink>
-        <details className="mobile-menu">
-          <summary aria-label="Open navigation"><span /><span /></summary>
-          <nav aria-label="Mobile navigation">
-            <Link href="/">Home</Link>
+        <details className="relative hidden justify-self-end max-[820px]:block">
+          <summary className="grid cursor-pointer list-none gap-1 p-3 [&::-webkit-details-marker]:hidden" aria-label="Open navigation"><span className="block h-0.5 w-[26px] bg-brand-ink" /><span className="block h-0.5 w-[26px] bg-brand-ink" /></summary>
+          <nav className="absolute right-0 top-[52px] flex min-w-[240px] flex-col gap-1 border border-[var(--line)] bg-brand-paper p-[18px] shadow-[0_22px_60px_rgba(35,31,32,0.18)]" aria-label="Mobile navigation">
+            <Link className="border-b border-[var(--line)] px-1 py-3 text-[0.8rem] font-black uppercase" href="/">Home</Link>
             {navigation.map((item) => (
-              <Link href={item.href} key={item.href}>{item.label}</Link>
+              <Link className="border-b border-[var(--line)] px-1 py-3 text-[0.8rem] font-black uppercase" href={item.href} key={item.href}>{item.label}</Link>
             ))}
             <WhatsAppLink
-              className="button button-red"
-              fallback={<Link className="button button-red" href="/community#join">Join the crew <span>↗</span></Link>}
+              className={`${button} bg-brand-red text-white hover:bg-brand-coral`}
+              fallback={<Link className={`${button} bg-brand-red text-white hover:bg-brand-coral`} href="/community#join">Join the crew <span>↗</span></Link>}
             >
               Join WhatsApp <span>↗</span>
             </WhatsAppLink>

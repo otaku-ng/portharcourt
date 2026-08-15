@@ -40,8 +40,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-brand-paper font-body text-brand-ink antialiased">
+    <html lang="en" data-scroll-behavior="smooth">
+      <body className="bg-brand-paper font-body text-brand-ink antialiased max-[560px]:text-[15px]">
         <SiteHeader />
         {children}
         <SiteFooter />

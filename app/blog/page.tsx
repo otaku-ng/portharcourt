@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Newsletter } from "@/components/newsletter";
 import { PageIntro } from "@/components/page-intro";
 import { stories } from "@/lib/site-data";
+import { button, cardEyebrow, displayHeading, kicker, sectionPadding, shell, textLink } from "@/lib/tailwind";
 
 export const metadata: Metadata = {
   title: "Stories",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function BlogPage() {
   return (
-    <main>
+    <main className="overflow-hidden">
       <PageIntro
         index="03"
         eyebrow="Stories from the group chat"
@@ -24,38 +25,38 @@ export default function BlogPage() {
         imagePosition="center 54%"
       />
 
-      <section className="featured-story section-shell" id={stories[0].slug}>
-        <div className="featured-story-image">
-          <Image src={stories[0].image} alt={stories[0].alt} fill priority sizes="(max-width: 800px) 100vw, 55vw" />
+      <section className={`${shell} ${sectionPadding} grid grid-cols-[1.15fr_0.85fr] items-center gap-[7vw] max-[820px]:grid-cols-1 max-[820px]:gap-[60px]`} id={stories[0].slug}>
+        <div className="relative h-[610px] overflow-hidden max-[560px]:h-[400px]">
+          <Image className="object-cover" src={stories[0].image} alt={stories[0].alt} fill priority sizes="(max-width: 800px) 100vw, 55vw" />
         </div>
         <article>
-          <p className="kicker"><span>Featured</span> {stories[0].category}</p>
-          <h2>{stories[0].title}</h2>
+          <p className={kicker}><span className="text-brand-red">Featured</span> {stories[0].category}</p>
+          <h2 className={`${displayHeading} my-6 mb-7 text-[clamp(3rem,5.2vw,5.7rem)]`}>{stories[0].title}</h2>
           <p>{stories[0].excerpt}</p>
-          <p>Every new season gives the community something to anticipate together. The real fun is not only in the release—it is in the theories, recommendations and weekly conversation that follows.</p>
-          <Link className="text-link" href="/contact">Share your take <span>↗</span></Link>
+          <p className="mt-[18px]">Every new season gives the community something to anticipate together. The real fun is not only in the release—it is in the theories, recommendations and weekly conversation that follows.</p>
+          <Link className={`${textLink} mt-7`} href="/contact">Share your take <span>↗</span></Link>
         </article>
       </section>
 
-      <section className="story-list section-shell">
+      <section className={`${shell} border-t border-[var(--line)] pb-[clamp(90px,11vw,160px)]`}>
         {stories.slice(1).map((story, index) => (
-          <article className="story-list-item" id={story.slug} key={story.slug}>
-            <span>{String(index + 2).padStart(2, "0")}</span>
-            <div className="story-list-image"><Image src={story.image} alt={story.alt} fill sizes="(max-width: 760px) 100vw, 34vw" /></div>
-            <div>
-              <p className="card-eyebrow">{story.category} · {story.date}</p>
-              <h2>{story.title}</h2>
+          <article className="grid grid-cols-[70px_0.8fr_1.2fr] items-center gap-9 border-b border-[var(--line)] py-14 max-[820px]:grid-cols-[54px_1fr] max-[560px]:block" id={story.slug} key={story.slug}>
+            <span className="self-start font-display text-[2.3rem] text-brand-red">{String(index + 2).padStart(2, "0")}</span>
+            <div className="relative h-[330px] overflow-hidden max-[820px]:col-start-2 max-[560px]:my-[22px] max-[560px]:h-[280px]"><Image className="object-cover" src={story.image} alt={story.alt} fill sizes="(max-width: 760px) 100vw, 34vw" /></div>
+            <div className="max-[820px]:col-start-2">
+              <p className={cardEyebrow}>{story.category} · {story.date}</p>
+              <h2 className={`${displayHeading} my-4 mb-[22px] text-[clamp(2.5rem,4.2vw,4.6rem)]`}>{story.title}</h2>
               <p>{story.excerpt}</p>
-              <Link className="text-link" href="/contact">Join the conversation <span>↗</span></Link>
+              <Link className={`${textLink} mt-6`} href="/contact">Join the conversation <span>↗</span></Link>
             </div>
           </article>
         ))}
       </section>
 
-      <section className="write-callout section-shell">
-        <p className="kicker">From your point of view</p>
-        <h2>Got a story the community should read?</h2>
-        <Link className="button button-dark" href="/contact">Pitch your story <span>↗</span></Link>
+      <section className={`${shell} mb-[clamp(90px,11vw,150px)] grid grid-cols-[0.45fr_1.2fr_auto] items-center gap-10 bg-brand-red p-[46px] text-white max-[1100px]:grid-cols-[1fr_1.2fr] max-[1100px]:[&>.button]:col-start-1 max-[1100px]:[&>.button]:justify-self-start max-[560px]:grid-cols-1 max-[560px]:p-[30px]`}>
+        <p className={`${kicker} text-white`}>From your point of view</p>
+        <h2 className={`${displayHeading} text-[clamp(2.4rem,4vw,4.4rem)]`}>Got a story the community should read?</h2>
+        <Link className={`${button} bg-brand-ink text-white hover:bg-brand-blue hover:text-brand-ink`} href="/contact">Pitch your story <span>↗</span></Link>
       </section>
 
       <Newsletter />
