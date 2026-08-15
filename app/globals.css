@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Anton";
+  src: url("/fonts/Anton-Regular.ttf") format("truetype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
 @theme inline {
   --color-brand-blue: var(--blue);
   --color-brand-blue-soft: var(--blue-soft);
@@ -26,7 +34,7 @@
   --paper: #fffdf8;
   --paper-dark: #f0ede6;
   --line: rgba(35, 31, 32, 0.16);
-  --display: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
+  --display: "Anton", sans-serif;
   --body: Raleway, "Helvetica Neue", Arial, sans-serif;
 }
 
