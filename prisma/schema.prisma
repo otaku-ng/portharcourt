@@ -24,6 +24,7 @@ model Event {
   location      String
   venue         String?
   coverImageUrl String
+  coverImageKey String?
   coverImageAlt String
   status        EventStatus
   published     Boolean     @default(false)
