@@ -17,7 +17,9 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
             <p className="text-[0.68rem] font-black tracking-[0.15em] text-brand-red uppercase">PH Otakus / Admin</p>
             <nav className="mt-3 flex gap-5 text-[0.78rem] font-black tracking-[0.08em] uppercase">
               <Link className="hover:text-brand-red" href="/admin/events">Events</Link>
-              <Link className="hover:text-brand-red" href="/admin/events/new">Create event</Link>
+              <Link className="hover:text-brand-red" href="/admin/gallery">Gallery</Link>
+              <Link className="hover:text-brand-red" href="/admin/stories">Stories</Link>
+              <Link className="hover:text-brand-red" href="/admin/newsletter">Newsletter</Link>
             </nav>
           </div>
           <form action={logoutAction}>

@@ -18,21 +18,21 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Local database setup
 
-Events are stored in PostgreSQL through Prisma. For local development:
+Events, gallery albums/images, stories and newsletter subscribers are stored in PostgreSQL through Prisma. For local development:
 
 1. Create a PostgreSQL database named `ph_otakus` (or choose another name).
 2. Copy `.env.example` to `.env` and update `DATABASE_URL` with your local credentials.
-3. Create the database tables with `yarn db:migrate`.
-4. Load the existing PH Otakus events with `yarn db:seed`.
+3. Apply the migrations with `yarn db:migrate` (or use `yarn db:migrate:deploy` in a deployed environment).
+4. Load the existing PH Otakus events, gallery and stories with `yarn db:seed`.
 5. Start the app with `yarn dev`.
 
 Useful database commands are `yarn db:generate`, `yarn db:migrate:deploy`, and `yarn db:studio`.
 
-## Admin event management and Cloudflare R2
+## Admin content management and Cloudflare R2
 
 Phase 2B adds a temporary server-side admin gate at `/admin/login`. Set `ADMIN_PASSWORD` and a long random `ADMIN_SESSION_SECRET` in `.env` before using it. R2 credentials are server-only. Set `R2_PUBLIC_BASE_URL` to the public read URL or custom domain for the bucket.
 
-Event cover images are uploaded directly from the browser to R2 using short-lived presigned PUT URLs. Configure the R2 bucket CORS policy to allow the browser origins that use the admin form. For local development, a policy like this is sufficient:
+Events, gallery images and story covers are uploaded directly from the browser to R2 using short-lived presigned PUT URLs. Configure the R2 bucket CORS policy to allow the browser origins that use the admin forms. For local development, a policy like this is sufficient:
 
 ```json
 [
@@ -50,6 +50,10 @@ Event cover images are uploaded directly from the browser to R2 using short-live
 ```
 
 Replace `https://YOUR_PRODUCTION_DOMAIN` with the real Vercel or custom-domain origin when deploying. Do not add a guessed production domain.
+
+Gallery albums are managed at `/admin/gallery`; save an album first, then upload multiple images, edit alt text/captions, reorder them and publish. Stories are managed at `/admin/stories` and use Markdown for the body. Draft gallery albums and stories are never exposed by the public routes. Newsletter signups are persisted at `/admin/newsletter`; this phase stores subscriber records but does not send email.
+
+The content migration is `prisma/migrations/20260819002000_add_content_management`. Run `yarn db:generate` after schema changes, then `yarn db:migrate` locally or `yarn db:migrate:deploy` for Neon/production, followed by `yarn db:seed`. Seeding creates missing legacy albums/stories without resetting existing edited content.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

@@ -11,6 +11,16 @@ enum EventStatus {
   ARCHIVED
 }
 
+enum StoryStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum NewsletterStatus {
+  SUBSCRIBED
+  UNSUBSCRIBED
+}
+
 model Event {
   id            String      @id @default(cuid())
   slug          String      @unique
@@ -31,5 +41,71 @@ model Event {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  galleryAlbums GalleryAlbum[]
+
   @@index([published, status, startAt])
+}
+
+model GalleryAlbum {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  title       String
+  description String?
+  eventId     String?
+  date        DateTime?
+  published   Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  event  Event?         @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  images GalleryImage[]
+
+  @@index([published, date, updatedAt])
+  @@index([eventId])
+}
+
+model GalleryImage {
+  id        String       @id @default(cuid())
+  albumId   String
+  objectKey String?
+  url       String
+  alt       String
+  caption   String?
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+
+  album GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@index([albumId, sortOrder])
+}
+
+model Story {
+  id            String      @id @default(cuid())
+  slug          String      @unique
+  title         String
+  excerpt       String
+  content       String
+  category      String
+  coverImageUrl String
+  coverImageKey String?
+  coverImageAlt String
+  status        StoryStatus @default(DRAFT)
+  publishedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status, publishedAt, updatedAt])
+}
+
+model NewsletterSubscriber {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  status         NewsletterStatus @default(SUBSCRIBED)
+  source         String?
+  subscribedAt   DateTime         @default(now())
+  unsubscribedAt DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([status, subscribedAt])
 }

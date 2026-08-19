@@ -7,7 +7,9 @@ import { Newsletter } from "@/components/newsletter";
 import { SectionHeading } from "@/components/section-heading";
 import { StoryCard } from "@/components/story-card";
 import { getArchivedEvents, getUpcomingEvents } from "@/lib/event-data";
-import { communityLanes, gallery, stories } from "@/lib/site-data";
+import { getPublishedGalleryImages } from "@/lib/gallery/repository";
+import { communityLanes } from "@/lib/site-data";
+import { getPublishedStorySummaries } from "@/lib/stories/repository";
 import {
   button,
   displayHeading,
@@ -90,7 +92,13 @@ async function HomeEventsSection() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  await connection();
+  const [galleryImages, stories] = await Promise.all([
+    getPublishedGalleryImages(5),
+    getPublishedStorySummaries(3),
+  ]);
+
   return (
     <main className="overflow-hidden">
       <section className="relative min-h-[calc(100svh-80px)] overflow-hidden bg-brand-blue text-white max-[820px]:min-h-[calc(100svh-70px)]">
@@ -380,25 +388,25 @@ export default function Home() {
           linkLabel="Open gallery"
         />
         <div className="mt-[70px] grid grid-cols-12 grid-rows-[340px_260px] gap-3 max-[820px]:grid-cols-2 max-[820px]:grid-rows-[repeat(3,280px)] max-[560px]:block">
-          {gallery.slice(0, 5).map((item, index) => (
+          {galleryImages.length === 0 ? (
+            <p className="col-span-full border-t border-[var(--line)] py-6 text-brand-ink-soft">The community archive is waiting for its first published album.</p>
+          ) : galleryImages.map((item, index) => (
             <figure
-              className={`group relative overflow-hidden bg-brand-ink max-[560px]:h-[280px] ${homeGalleryDesktop[index]} ${homeGalleryTablet[index]} ${index > 0 ? "max-[560px]:mt-2.5" : ""}`}
-              key={item.label}
+              className={`group relative overflow-hidden bg-brand-ink max-[560px]:h-[280px] ${homeGalleryDesktop[index] ?? "col-span-4"} ${homeGalleryTablet[index] ?? ""} ${index > 0 ? "max-[560px]:mt-2.5" : ""}`}
+              key={item.id}
             >
-              <Image
-                className="object-cover transition-transform duration-[420ms] group-hover:scale-[1.035]"
-                src={item.image}
-                alt={item.alt}
-                fill
-                sizes="(max-width: 760px) 100vw, 40vw"
-              />
-              <figcaption className="absolute inset-x-0 bottom-0 flex items-end gap-3.5 bg-[linear-gradient(transparent,rgba(35,31,32,0.82))] px-[18px] pb-4 pt-[42px] text-white">
-                <span className="font-display text-[1.6rem] text-brand-orange">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <b className="pb-1 text-[0.72rem] tracking-[0.1em] uppercase">
-                  {item.label}
-                </b>
+              <Link className="absolute inset-0" href={`/gallery/${item.albumSlug}`} aria-label={`Open ${item.albumTitle}`}>
+                <Image
+                  className="object-cover transition-transform duration-[420ms] group-hover:scale-[1.035]"
+                  src={item.url}
+                  alt={item.alt}
+                  fill
+                  sizes="(max-width: 760px) 100vw, 40vw"
+                />
+              </Link>
+              <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end gap-3.5 bg-[linear-gradient(transparent,rgba(35,31,32,0.82))] px-[18px] pb-4 pt-[42px] text-white">
+                <span className="font-display text-[1.6rem] text-brand-orange">{String(index + 1).padStart(2, "0")}</span>
+                <b className="pb-1 text-[0.72rem] tracking-[0.1em] uppercase">{item.caption ?? item.albumTitle}</b>
               </figcaption>
             </figure>
           ))}
@@ -414,9 +422,9 @@ export default function Home() {
           linkLabel="All stories"
         />
         <div className="mt-[70px] grid grid-cols-3 gap-[22px] max-[820px]:grid-cols-1">
-          {stories.map((story, index) => (
+          {stories.length > 0 ? stories.map((story, index) => (
             <StoryCard story={story} index={index} key={story.slug} />
-          ))}
+          )) : <p className="col-span-full border-t border-[var(--line)] py-6 text-brand-ink-soft">No published stories yet. The next note is on its way.</p>}
         </div>
       </section>
 

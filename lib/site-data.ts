@@ -1,91 +1,9 @@
-export type StoryItem = {
-  slug: string;
-  title: string;
-  category: string;
-  date: string;
-  image: string;
-  alt: string;
-  excerpt: string;
-};
-
 export const navigation = [
   { href: "/events", label: "Events" },
   { href: "/community", label: "Community" },
   { href: "/blog", label: "Stories" },
   { href: "/gallery", label: "Gallery" },
   { href: "/contact", label: "Contact" },
-];
-
-export const stories: StoryItem[] = [
-  {
-    slug: "october-anime-hype",
-    title: "The Hype That October Brings to the Otaku Community",
-    category: "Anime",
-    date: "Community notes",
-    image: "/figma/blog-06.jpg",
-    alt: "A wall of colourful anime scenes from the PH Otakus library",
-    excerpt:
-      "A season of returns, discoveries and the conversations that keep the group chat moving.",
-  },
-  {
-    slug: "why-local-community-matters",
-    title: "Why Local Community Changes the Way We Enjoy Fandom",
-    category: "Community",
-    date: "Field notes",
-    image: "/figma/blog-01.jpg",
-    alt: "PH Otakus members smiling together after a community gathering",
-    excerpt:
-      "The best recommendations are better when they lead to real friendships, shared rooms and loud reactions.",
-  },
-  {
-    slug: "collecting-in-ph",
-    title: "Collecting in PH: Figures, Posters and the Stories We Keep",
-    category: "Culture",
-    date: "Shelf life",
-    image: "/figma/home-08.jpg",
-    alt: "A Kakashi figure posed with blue lightning",
-    excerpt:
-      "A quick look at the objects, characters and memories that turn a shelf into a personal archive.",
-  },
-];
-
-export const gallery = [
-  {
-    image: "/figma/home-05.jpg",
-    alt: "PH Otakus members cheering together outdoors",
-    label: "The crew",
-    note: "Community day",
-  },
-  {
-    image: "/figma/event-01.jpg",
-    alt: "Vintage comic book covers arranged around Doctor Doom",
-    label: "Comic culture",
-    note: "Event artwork",
-  },
-  {
-    image: "/figma/blog-06.jpg",
-    alt: "A collage wall of anime scenes",
-    label: "What we watch",
-    note: "Anime archive",
-  },
-  {
-    image: "/figma/home-08.jpg",
-    alt: "Kakashi collectible with blue lightning",
-    label: "Collectors",
-    note: "Shelf stories",
-  },
-  {
-    image: "/figma/home-15.jpg",
-    alt: "Colourful vintage comic book covers",
-    label: "Panels & pages",
-    note: "Manga and comics",
-  },
-  {
-    image: "/figma/home-07.jpg",
-    alt: "Vintage illustrated travel poster",
-    label: "Meetups",
-    note: "Out in Port Harcourt",
-  },
 ];
 
 export const communityLanes = [

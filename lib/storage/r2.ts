@@ -2,16 +2,20 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const R2_UPLOAD_EXPIRES_IN_SECONDS = 5 * 60;
-export const MAX_EVENT_COVER_IMAGE_BYTES = 10 * 1024 * 1024;
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+export const MAX_EVENT_COVER_IMAGE_BYTES = MAX_IMAGE_BYTES;
 
-export const EVENT_COVER_IMAGE_TYPES = {
+export const IMAGE_TYPES = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
   "image/avif": "avif",
 } as const;
 
-export type EventCoverImageType = keyof typeof EVENT_COVER_IMAGE_TYPES;
+export const EVENT_COVER_IMAGE_TYPES = IMAGE_TYPES;
+
+export type ImageContentType = keyof typeof IMAGE_TYPES;
+export type EventCoverImageType = ImageContentType;
 
 type R2Config = {
   accountId: string;
@@ -76,7 +80,7 @@ function getR2Client(config: R2Config): S3Client {
 }
 
 export function getEventCoverImageExtension(contentType: string): string | null {
-  return EVENT_COVER_IMAGE_TYPES[contentType as EventCoverImageType] ?? null;
+  return IMAGE_TYPES[contentType as ImageContentType] ?? null;
 }
 
 export function isValidEventCoverImageType(contentType: string): contentType is EventCoverImageType {
@@ -84,11 +88,31 @@ export function isValidEventCoverImageType(contentType: string): contentType is 
 }
 
 export function isValidEventCoverImageSize(size: number): boolean {
-  return Number.isSafeInteger(size) && size > 0 && size <= MAX_EVENT_COVER_IMAGE_BYTES;
+  return Number.isSafeInteger(size) && size > 0 && size <= MAX_IMAGE_BYTES;
 }
 
 export function isSafeEventObjectKey(objectKey: string): boolean {
   return /^events\/[A-Za-z0-9_-]+\/[0-9a-f-]{36}\.(jpg|png|webp|avif)$/.test(objectKey);
+}
+
+function isSafeScopedObjectKey(objectKey: string, folder: "gallery" | "stories"): boolean {
+  return new RegExp(`^${folder}/[A-Za-z0-9_-]+/[0-9a-f-]{36}\\.(jpg|png|webp|avif)$`).test(objectKey);
+}
+
+export function isSafeGalleryObjectKey(objectKey: string): boolean {
+  return isSafeScopedObjectKey(objectKey, "gallery");
+}
+
+export function isSafeStoryObjectKey(objectKey: string): boolean {
+  return isSafeScopedObjectKey(objectKey, "stories");
+}
+
+export function getPublicUrlForObjectKey(objectKey: string): string {
+  if (!isSafeEventObjectKey(objectKey) && !isSafeGalleryObjectKey(objectKey) && !isSafeStoryObjectKey(objectKey)) {
+    throw new Error("Invalid image object key.");
+  }
+
+  return `${getR2Config().publicBaseUrl}/${objectKey}`;
 }
 
 export function getPublicUrlForEventObjectKey(objectKey: string): string {
@@ -96,10 +120,10 @@ export function getPublicUrlForEventObjectKey(objectKey: string): string {
     throw new Error("Invalid event image object key.");
   }
 
-  return `${getR2Config().publicBaseUrl}/${objectKey}`;
+  return getPublicUrlForObjectKey(objectKey);
 }
 
-export async function createEventCoverUpload(objectKey: string, contentType: EventCoverImageType) {
+export async function createImageUpload(objectKey: string, contentType: ImageContentType) {
   const config = getR2Config();
   const command = new PutObjectCommand({
     Bucket: config.bucketName,
@@ -116,6 +140,10 @@ export async function createEventCoverUpload(objectKey: string, contentType: Eve
     objectKey,
     publicUrl: `${config.publicBaseUrl}/${objectKey}`,
   };
+}
+
+export async function createEventCoverUpload(objectKey: string, contentType: EventCoverImageType) {
+  return createImageUpload(objectKey, contentType);
 }
 
 export function getStorageConfigurationErrorMessage(error: unknown): string {

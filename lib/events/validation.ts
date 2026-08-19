@@ -70,18 +70,7 @@ export function parseEventForm(formData: FormData) {
   });
 }
 
-export function normalizeSlug(value: string | null, title: string): string {
-  const source = (value || title).normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
-  const slug = source
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 100)
-    .replace(/-+$/g, "");
-
-  return slug;
-}
+export { normalizeSlug } from "@/lib/slug";
 
 export function getZodFieldErrors(error: z.ZodError): Record<string, string> {
   const fieldErrors: Record<string, string> = {};
