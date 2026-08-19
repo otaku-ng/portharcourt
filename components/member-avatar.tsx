@@ -1,3 +1,8 @@
+"use client";
+
+import Image from "next/image";
+import { useState } from "react";
+
 function getInitials(name: string): string {
   return name
     .split(/\s+/)
@@ -16,14 +21,28 @@ export function MemberAvatar({
   image?: string | null;
   size?: "small" | "large";
 }) {
+  const [failedImage, setFailedImage] = useState<string | null>(null);
+  const showImage = Boolean(image) && failedImage !== image;
+
   return (
     <div
-      className={`grid shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand-ink bg-brand-blue font-display text-brand-ink ${size === "small" ? "size-10 text-sm" : "size-28 text-3xl max-[560px]:size-24"}`}
-      role={image ? "img" : undefined}
-      aria-label={image ? `${name} avatar` : undefined}
-      style={image ? { backgroundImage: `url("${image}")`, backgroundPosition: "center", backgroundSize: "cover" } : undefined}
+      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand-ink bg-brand-blue font-display text-brand-ink ${size === "small" ? "size-10 text-sm" : "size-28 text-3xl max-[560px]:size-24"}`}
+      role={showImage ? undefined : "img"}
+      aria-label={showImage ? undefined : `${name} avatar`}
     >
-      <span aria-hidden={Boolean(image)}>{getInitials(name)}</span>
+      {showImage ? (
+        <Image
+          alt={`${name} avatar`}
+          className="object-cover"
+          fill
+          onError={() => setFailedImage(image ?? null)}
+          sizes={size === "small" ? "40px" : "112px"}
+          src={image ?? ""}
+          unoptimized
+        />
+      ) : (
+        <span aria-hidden="true">{getInitials(name)}</span>
+      )}
     </div>
   );
 }
