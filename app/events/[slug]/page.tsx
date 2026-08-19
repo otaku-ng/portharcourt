@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Newsletter } from "@/components/newsletter";
-import { getEventBySlug } from "@/lib/event-data";
+import { EventRsvpPanel } from "@/components/event-rsvp-panel";
+import { getMember } from "@/lib/auth/member";
+import { getEventBySlug, getPublishedEventDetailsBySlug } from "@/lib/event-data";
 import { button, displayHeading, kicker, shell, textLink } from "@/lib/tailwind";
 
 type EventDetailPageProps = {
@@ -36,10 +38,15 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
   const { slug } = await params;
-  const event = await getEventBySlug(slug);
+  const member = await getMember();
+  const event = await getPublishedEventDetailsBySlug(slug, member?.userId);
 
   if (!event) {
     notFound();
+  }
+
+  if (member && !member.user.profile?.profileCompleted) {
+    redirect(`/profile/setup?returnTo=${encodeURIComponent(`/events/${slug}`)}`);
   }
 
   const isArchived = event.status === "Archive";
@@ -76,6 +83,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             <div className="grid grid-cols-[80px_1fr] gap-[18px] border-t border-[var(--line)] py-4"><dt className="text-[0.65rem] font-black tracking-[0.1em] uppercase">Location</dt><dd className="text-[0.86rem]">{event.displayLocation}</dd></div>
             <div className="grid grid-cols-[80px_1fr] gap-[18px] border-t border-[var(--line)] py-4"><dt className="text-[0.65rem] font-black tracking-[0.1em] uppercase">Format</dt><dd className="text-[0.86rem]">{event.eyebrow}</dd></div>
           </dl>
+          <EventRsvpPanel
+            currentUserRsvp={event.currentUserRsvp}
+            goingCount={event.goingCount}
+            interestedCount={event.interestedCount}
+            signedIn={Boolean(member)}
+            slug={event.slug}
+          />
           <Link className={`${button} bg-brand-red text-white hover:bg-brand-coral`} href="/events">See upcoming plans <span>↗</span></Link>
         </aside>
       </section>

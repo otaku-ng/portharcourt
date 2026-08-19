@@ -21,6 +21,11 @@ enum NewsletterStatus {
   UNSUBSCRIBED
 }
 
+enum RsvpStatus {
+  GOING
+  INTERESTED
+}
+
 model Event {
   id            String      @id @default(cuid())
   slug          String      @unique
@@ -42,8 +47,124 @@ model Event {
   updatedAt     DateTime    @updatedAt
 
   galleryAlbums GalleryAlbum[]
+  rsvps         EventRSVP[]
 
   @@index([published, status, startAt])
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String?
+  email         String?     @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  profile  Profile?
+  rsvps    EventRSVP[]
+  badges   UserBadge[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Profile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  username          String   @unique
+  displayName       String
+  bio               String?
+  avatarUrl         String?
+  city              String?
+  favouriteAnime    String?
+  favouriteManga   String?
+  favouriteGames   String?
+  interests         String[] @default([])
+  creatorType       String?
+  profileCompleted  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EventRSVP {
+  id        String     @id @default(cuid())
+  userId    String
+  eventId   String
+  status    RsvpStatus
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@index([eventId, status])
+  @@index([userId, status])
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  name        String
+  description String
+  icon        String
+  createdAt   DateTime    @default(now())
+
+  users UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([badgeId])
 }
 
 model GalleryAlbum {

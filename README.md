@@ -18,15 +18,38 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Local database setup
 
-Events, gallery albums/images, stories and newsletter subscribers are stored in PostgreSQL through Prisma. For local development:
+Events, gallery albums/images, stories, newsletter subscribers and member accounts are stored in PostgreSQL through Prisma. For local development:
 
 1. Create a PostgreSQL database named `ph_otakus` (or choose another name).
 2. Copy `.env.example` to `.env` and update `DATABASE_URL` with your local credentials.
 3. Apply the migrations with `yarn db:migrate` (or use `yarn db:migrate:deploy` in a deployed environment).
-4. Load the existing PH Otakus events, gallery and stories with `yarn db:seed`.
+4. Load the existing PH Otakus events, gallery, stories and badge definitions with `yarn db:seed`.
 5. Start the app with `yarn dev`.
 
 Useful database commands are `yarn db:generate`, `yarn db:migrate:deploy`, and `yarn db:studio`.
+
+## Member sign-in with Google
+
+Member authentication uses Auth.js with the Prisma adapter and Google OAuth. It is separate from the existing admin password/session gate at `/admin/login`.
+
+Add these server-only variables to `.env`:
+
+```env
+AUTH_SECRET=
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
+```
+
+Generate a local secret with `openssl rand -base64 32`. In Google Cloud Console, create a Web OAuth client and add these authorised redirect URIs:
+
+```text
+http://localhost:3000/api/auth/callback/google
+https://YOUR_PRODUCTION_DOMAIN/api/auth/callback/google
+```
+
+Replace `YOUR_PRODUCTION_DOMAIN` with the real deployed origin. Store the production values in Vercel as Sensitive environment variables. Never prefix Auth.js secrets or Google credentials with `NEXT_PUBLIC_` and never commit them.
+
+Members start at `/signin`, complete `/profile/setup` on first sign-in, and can then use `/profile`, `/profile/edit`, and public `/members/[username]` pages. RSVP changes are tied to the local Prisma `User.id`; provider identifiers and emails are not shown on public profiles.
 
 ## Admin content management and Cloudflare R2
 
@@ -53,7 +76,7 @@ Replace `https://YOUR_PRODUCTION_DOMAIN` with the real Vercel or custom-domain o
 
 Gallery albums are managed at `/admin/gallery`; save an album first, then upload multiple images, edit alt text/captions, reorder them and publish. Stories are managed at `/admin/stories` and use Markdown for the body. Draft gallery albums and stories are never exposed by the public routes. Newsletter signups are persisted at `/admin/newsletter`; this phase stores subscriber records but does not send email.
 
-The content migration is `prisma/migrations/20260819002000_add_content_management`. Run `yarn db:generate` after schema changes, then `yarn db:migrate` locally or `yarn db:migrate:deploy` for Neon/production, followed by `yarn db:seed`. Seeding creates missing legacy albums/stories without resetting existing edited content.
+The content migration is `prisma/migrations/20260819002000_add_content_management` and the member foundation is `prisma/migrations/20260819003000_add_member_platform`. Run `yarn db:generate` after schema changes, then `yarn db:migrate` locally or `yarn db:migrate:deploy` for Neon/production, followed by `yarn db:seed`. Seeding creates missing legacy albums/stories and badge definitions without resetting existing edited content or creating fake users.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

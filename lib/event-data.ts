@@ -1,4 +1,4 @@
-import { Prisma, EventStatus } from "@prisma/client";
+import { Prisma, EventStatus, RsvpStatus } from "@prisma/client";
 import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
 
@@ -17,6 +17,12 @@ export type PublicEvent = {
   status: "Next up" | "Archive";
 };
 
+export type PublicEventDetails = PublicEvent & {
+  goingCount: number;
+  interestedCount: number;
+  currentUserRsvp: RsvpStatus | null;
+};
+
 const publicEventSelect = {
   slug: true,
   title: true,
@@ -32,8 +38,17 @@ const publicEventSelect = {
   status: true,
 } satisfies Prisma.EventSelect;
 
+const publicEventDetailsSelect = {
+  ...publicEventSelect,
+  id: true,
+} satisfies Prisma.EventSelect;
+
 type PublicEventRecord = Prisma.EventGetPayload<{
   select: typeof publicEventSelect;
+}>;
+
+type PublicEventDetailsRecord = Prisma.EventGetPayload<{
+  select: typeof publicEventDetailsSelect;
 }>;
 
 const dateFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -74,6 +89,23 @@ function toPublicEvent(event: PublicEventRecord): PublicEvent {
     alt: event.coverImageAlt,
     description: event.description,
     status: event.status === EventStatus.ARCHIVED ? "Archive" : "Next up",
+  };
+}
+
+function toPublicEventDetails(
+  event: PublicEventDetailsRecord,
+  rsvpCounts: Array<{ status: RsvpStatus; _count: { _all: number } }>,
+  currentUserRsvp: RsvpStatus | null,
+): PublicEventDetails {
+  const base = toPublicEvent(event);
+  const goingCount = rsvpCounts.find((count) => count.status === RsvpStatus.GOING)?._count._all ?? 0;
+  const interestedCount = rsvpCounts.find((count) => count.status === RsvpStatus.INTERESTED)?._count._all ?? 0;
+
+  return {
+    ...base,
+    goingCount,
+    interestedCount,
+    currentUserRsvp,
   };
 }
 
@@ -121,3 +153,28 @@ export const getEventBySlug = cache(async (slug: string): Promise<PublicEvent | 
 
   return event ? toPublicEvent(event) : null;
 });
+
+export async function getPublishedEventDetailsBySlug(slug: string, userId?: string): Promise<PublicEventDetails | null> {
+  const event = await prisma.event.findFirst({
+    where: { slug, published: true },
+    select: publicEventDetailsSelect,
+  });
+
+  if (!event) return null;
+
+  const [rsvpCounts, currentUserRsvp] = await Promise.all([
+    prisma.eventRSVP.groupBy({
+      by: ["status"],
+      where: { eventId: event.id },
+      _count: { _all: true },
+    }),
+    userId
+      ? prisma.eventRSVP.findUnique({
+          where: { userId_eventId: { userId, eventId: event.id } },
+          select: { status: true },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  return toPublicEventDetails(event, rsvpCounts, currentUserRsvp?.status ?? null);
+}

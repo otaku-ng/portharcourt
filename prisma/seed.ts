@@ -103,7 +103,24 @@ const legacyStories = [
   },
 ] as const;
 
+const badges = [
+  { key: "FOUNDING_MEMBER", name: "Founding Member", description: "One of the people helping PH Otakus grow from the start.", icon: "✦" },
+  { key: "FIRST_EVENT", name: "First Event", description: "Showed up for a PH Otakus event.", icon: "★" },
+  { key: "FIVE_EVENTS", name: "Five Events", description: "Made it to five PH Otakus events.", icon: "✦" },
+  { key: "COSPLAYER", name: "Cosplayer", description: "A community badge for cosplay culture and craft.", icon: "✿" },
+  { key: "COMMUNITY_ARTIST", name: "Community Artist", description: "A community badge for artists sharing their work.", icon: "✎" },
+  { key: "TOURNAMENT_PLAYER", name: "Tournament Player", description: "A community badge for competitive players.", icon: "⚡" },
+] as const;
+
 async function main() {
+  for (const badge of badges) {
+    await prisma.badge.upsert({
+      where: { key: badge.key },
+      update: {},
+      create: badge,
+    });
+  }
+
   for (const event of events) {
     await prisma.event.upsert({
       where: { slug: event.slug },
