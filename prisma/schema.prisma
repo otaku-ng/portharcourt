@@ -21,6 +21,12 @@ enum NewsletterStatus {
   UNSUBSCRIBED
 }
 
+enum UserRole {
+  MEMBER
+  ADMIN
+  SUPER_ADMIN
+}
+
 enum RsvpStatus {
   GOING
   INTERESTED
@@ -58,6 +64,7 @@ model User {
   email         String?     @unique
   emailVerified DateTime?
   image         String?
+  role          UserRole @default(MEMBER)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -114,12 +121,24 @@ model Profile {
   displayName       String
   bio               String?
   avatarUrl         String?
+  avatarKey         String?
+  bannerUrl         String?
+  bannerKey         String?
   city              String?
   favouriteAnime    String?
   favouriteManga   String?
   favouriteGames   String?
   interests         String[] @default([])
   creatorType       String?
+  instagramUrl      String?
+  tiktokUrl         String?
+  twitterUrl        String?
+  youtubeUrl        String?
+  twitchUrl         String?
+  websiteUrl        String?
+  currentlyWatching String?
+  currentlyReading  String?
+  currentlyPlaying  String?
   profileCompleted  Boolean  @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

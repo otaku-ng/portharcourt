@@ -1,84 +1,58 @@
-import { createHash, timingSafeEqual } from "node:crypto";
-import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { UserRole, type Prisma } from "@prisma/client";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/db/prisma";
 
-const ADMIN_SESSION_COOKIE = "ph_otakus_admin_session";
-const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 8;
-const MIN_SESSION_SECRET_LENGTH = 32;
+const adminUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  image: true,
+  role: true,
+  profile: {
+    select: {
+      displayName: true,
+      avatarUrl: true,
+    },
+  },
+} satisfies Prisma.UserSelect;
 
-export type AdminSession = {
-  authenticated: true;
-};
+export type AdminContext = Prisma.UserGetPayload<{ select: typeof adminUserSelect }>;
 
-function getSessionSecret(): Uint8Array | null {
-  const value = process.env.ADMIN_SESSION_SECRET?.trim();
-  return value && value.length >= MIN_SESSION_SECRET_LENGTH ? new TextEncoder().encode(value) : null;
+function safeCallbackUrl(callbackUrl: string): string {
+  return callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/admin";
 }
 
-function getAdminPassword(): string | null {
-  const value = process.env.ADMIN_PASSWORD;
-  return value ? value : null;
-}
+/** Resolve the signed-in user and current PostgreSQL role. */
+export async function getAdminContext(): Promise<AdminContext | null> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
 
-function safeEqual(left: string, right: string): boolean {
-  const leftHash = createHash("sha256").update(left).digest();
-  const rightHash = createHash("sha256").update(right).digest();
-  return timingSafeEqual(leftHash, rightHash);
-}
-
-export function isAdminAuthConfigured(): boolean {
-  return Boolean(getAdminPassword() && getSessionSecret());
-}
-
-export function verifyAdminPassword(password: string): boolean {
-  const expectedPassword = getAdminPassword();
-  return Boolean(expectedPassword && safeEqual(password, expectedPassword));
-}
-
-export async function createAdminSession(): Promise<void> {
-  const secret = getSessionSecret();
-
-  if (!secret) {
-    throw new Error("Admin session is not configured.");
-  }
-
-  const token = await new SignJWT({ authenticated: true })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(`${ADMIN_SESSION_TTL_SECONDS}s`)
-    .sign(secret);
-
-  const cookieStore = await cookies();
-  cookieStore.set(ADMIN_SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: ADMIN_SESSION_TTL_SECONDS,
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: adminUserSelect,
   });
 }
 
-export async function clearAdminSession(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(ADMIN_SESSION_COOKIE);
-}
-
-export async function requireAdmin(): Promise<AdminSession | null> {
-  const secret = getSessionSecret();
-  if (!secret) return null;
-
-  const token = (await cookies()).get(ADMIN_SESSION_COOKIE)?.value;
-  if (!token) return null;
-
-  try {
-    const { payload } = await jwtVerify(token, secret, {
-      algorithms: ["HS256"],
-    });
-
-    return payload.authenticated === true ? { authenticated: true } : null;
-  } catch {
+export async function requireAdmin(callbackUrl = "/admin"): Promise<AdminContext | null> {
+  const context = await getAdminContext();
+  if (!context) {
+    const session = await auth();
+    if (!session?.user?.id) {
+      redirect(`/signin?callbackUrl=${encodeURIComponent(safeCallbackUrl(callbackUrl))}`);
+    }
     return null;
   }
+
+  return context.role === UserRole.ADMIN || context.role === UserRole.SUPER_ADMIN ? context : null;
 }
 
-export const adminSessionCookieName = ADMIN_SESSION_COOKIE;
+export async function requireSuperAdmin(callbackUrl = "/admin/admins"): Promise<AdminContext | null> {
+  const context = await requireAdmin(callbackUrl);
+  return context?.role === UserRole.SUPER_ADMIN ? context : null;
+}
+
+export function adminRoleLabel(role: UserRole): string {
+  return role === UserRole.SUPER_ADMIN ? "SUPER ADMIN" : "ADMIN";
+}

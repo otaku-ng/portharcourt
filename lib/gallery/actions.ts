@@ -23,7 +23,7 @@ export type GalleryActionState = {
 };
 
 const unauthenticatedState: GalleryActionState = {
-  error: "Your admin session has expired. Sign in again.",
+  error: "Your admin access has changed. Sign in again or ask a super admin to update your role.",
 };
 
 function getId(formData: FormData): string | null {
@@ -175,7 +175,7 @@ export async function updateGalleryAlbumAction(
 }
 
 export async function setGalleryPublishedAction(formData: FormData): Promise<void> {
-  if (!(await requireAdmin())) redirect("/admin/login");
+  if (!(await requireAdmin("/admin/gallery"))) redirect("/admin");
 
   const id = getId(formData);
   if (!id) redirect(getReturnPath(formData));

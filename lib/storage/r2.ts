@@ -3,6 +3,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const R2_UPLOAD_EXPIRES_IN_SECONDS = 5 * 60;
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+export const MAX_PROFILE_AVATAR_BYTES = 5 * 1024 * 1024;
+export const MAX_PROFILE_BANNER_BYTES = 10 * 1024 * 1024;
 export const MAX_EVENT_COVER_IMAGE_BYTES = MAX_IMAGE_BYTES;
 
 export const IMAGE_TYPES = {
@@ -99,6 +101,12 @@ function isSafeScopedObjectKey(objectKey: string, folder: "gallery" | "stories")
   return new RegExp(`^${folder}/[A-Za-z0-9_-]+/[0-9a-f-]{36}\\.(jpg|png|webp|avif)$`).test(objectKey);
 }
 
+export function isSafeProfileObjectKey(objectKey: string, userId?: string, kind?: "avatar" | "banner"): boolean {
+  const userPattern = userId ? userId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : "[A-Za-z0-9_-]{1,80}";
+  const kindPattern = kind ?? "(?:avatar|banner)";
+  return new RegExp(`^profiles/${userPattern}/${kindPattern}/[0-9a-f-]{36}\\.(jpg|png|webp|avif)$`).test(objectKey);
+}
+
 export function isSafeGalleryObjectKey(objectKey: string): boolean {
   return isSafeScopedObjectKey(objectKey, "gallery");
 }
@@ -108,7 +116,7 @@ export function isSafeStoryObjectKey(objectKey: string): boolean {
 }
 
 export function getPublicUrlForObjectKey(objectKey: string): string {
-  if (!isSafeEventObjectKey(objectKey) && !isSafeGalleryObjectKey(objectKey) && !isSafeStoryObjectKey(objectKey)) {
+  if (!isSafeEventObjectKey(objectKey) && !isSafeGalleryObjectKey(objectKey) && !isSafeStoryObjectKey(objectKey) && !isSafeProfileObjectKey(objectKey)) {
     throw new Error("Invalid image object key.");
   }
 
@@ -143,6 +151,11 @@ export async function createImageUpload(objectKey: string, contentType: ImageCon
 }
 
 export async function createEventCoverUpload(objectKey: string, contentType: EventCoverImageType) {
+  return createImageUpload(objectKey, contentType);
+}
+
+export async function createProfileMediaUpload(objectKey: string, contentType: ImageContentType) {
+  if (!isSafeProfileObjectKey(objectKey)) throw new Error("Invalid profile image object key.");
   return createImageUpload(objectKey, contentType);
 }
 

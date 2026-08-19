@@ -23,7 +23,7 @@ export type EventActionState = {
 };
 
 const unauthenticatedState: EventActionState = {
-  error: "Your admin session has expired. Sign in again.",
+  error: "Your admin access has changed. Sign in again or ask a super admin to update your role.",
 };
 
 function getId(formData: FormData): string | null {
@@ -152,7 +152,7 @@ export async function updateEventAction(
 }
 
 export async function setEventPublishedAction(formData: FormData): Promise<void> {
-  if (!(await requireAdmin())) redirect("/admin/login");
+  if (!(await requireAdmin("/admin/events"))) redirect("/admin");
 
   const id = getId(formData);
   if (!id) redirect(getReturnPath(formData));

@@ -27,6 +27,20 @@ const optionalText = (max: number) =>
     z.string().trim().max(max).nullable(),
   );
 
+function isSafeHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (url.protocol === "https:" || url.protocol === "http:") && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+const optionalSafeUrl = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+  z.string().trim().max(400, "Links must be 400 characters or fewer.").nullable().refine((value) => value === null || isSafeHttpUrl(value), "Use a safe HTTP(S) link."),
+);
+
 export const usernameSchema = z
   .string()
   .trim()
@@ -48,9 +62,23 @@ export const profileSchema = z.object({
     (value) => (typeof value === "string" && value.trim() === "" ? null : value),
     z.enum(CREATOR_TYPE_OPTIONS).nullable(),
   ),
+  instagramUrl: optionalSafeUrl,
+  tiktokUrl: optionalSafeUrl,
+  twitterUrl: optionalSafeUrl,
+  youtubeUrl: optionalSafeUrl,
+  twitchUrl: optionalSafeUrl,
+  websiteUrl: optionalSafeUrl,
+  currentlyWatching: optionalText(120),
+  currentlyReading: optionalText(120),
+  currentlyPlaying: optionalText(120),
 });
 
-export type ProfileFormValues = z.infer<typeof profileSchema>;
+export type ProfileFormValues = z.infer<typeof profileSchema> & {
+  avatarUrl: string | null;
+  avatarKey: string | null;
+  bannerUrl: string | null;
+  bannerKey: string | null;
+};
 
 export function toProfileFormValues(value: {
   username: string;
@@ -62,6 +90,19 @@ export function toProfileFormValues(value: {
   favouriteManga?: string | null;
   favouriteGames?: string | null;
   creatorType?: string | null;
+  avatarUrl?: string | null;
+  avatarKey?: string | null;
+  bannerUrl?: string | null;
+  bannerKey?: string | null;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
+  twitterUrl?: string | null;
+  youtubeUrl?: string | null;
+  twitchUrl?: string | null;
+  websiteUrl?: string | null;
+  currentlyWatching?: string | null;
+  currentlyReading?: string | null;
+  currentlyPlaying?: string | null;
 }): ProfileFormValues {
   return {
     username: value.username,
@@ -73,6 +114,19 @@ export function toProfileFormValues(value: {
     favouriteManga: value.favouriteManga ?? null,
     favouriteGames: value.favouriteGames ?? null,
     creatorType: CREATOR_TYPE_OPTIONS.includes(value.creatorType as typeof CREATOR_TYPE_OPTIONS[number]) ? value.creatorType as typeof CREATOR_TYPE_OPTIONS[number] : null,
+    avatarUrl: value.avatarUrl ?? null,
+    avatarKey: value.avatarKey ?? null,
+    bannerUrl: value.bannerUrl ?? null,
+    bannerKey: value.bannerKey ?? null,
+    instagramUrl: value.instagramUrl ?? null,
+    tiktokUrl: value.tiktokUrl ?? null,
+    twitterUrl: value.twitterUrl ?? null,
+    youtubeUrl: value.youtubeUrl ?? null,
+    twitchUrl: value.twitchUrl ?? null,
+    websiteUrl: value.websiteUrl ?? null,
+    currentlyWatching: value.currentlyWatching ?? null,
+    currentlyReading: value.currentlyReading ?? null,
+    currentlyPlaying: value.currentlyPlaying ?? null,
   };
 }
 
@@ -92,6 +146,15 @@ export function parseProfileForm(formData: FormData) {
     favouriteManga: getString(formData, "favouriteManga"),
     favouriteGames: getString(formData, "favouriteGames"),
     creatorType: getString(formData, "creatorType"),
+    instagramUrl: getString(formData, "instagramUrl"),
+    tiktokUrl: getString(formData, "tiktokUrl"),
+    twitterUrl: getString(formData, "twitterUrl"),
+    youtubeUrl: getString(formData, "youtubeUrl"),
+    twitchUrl: getString(formData, "twitchUrl"),
+    websiteUrl: getString(formData, "websiteUrl"),
+    currentlyWatching: getString(formData, "currentlyWatching"),
+    currentlyReading: getString(formData, "currentlyReading"),
+    currentlyPlaying: getString(formData, "currentlyPlaying"),
   });
 }
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile-form";
 import { requireMember } from "@/lib/auth/member";
-import { getMemberProfileByUserId } from "@/lib/profiles/repository";
+import { getEditableProfileByUserId } from "@/lib/profiles/repository";
 import { toProfileFormValues } from "@/lib/profiles/validation";
 import { displayHeading, kicker, shell } from "@/lib/tailwind";
 
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export default async function EditProfilePage() {
   const member = await requireMember("/profile/edit");
-  const profile = await getMemberProfileByUserId(member.userId);
+  const profile = await getEditableProfileByUserId(member.userId);
   if (!profile) redirect("/profile/setup");
 
   return (
@@ -24,7 +24,7 @@ export default async function EditProfilePage() {
         <div className="max-w-[1000px]">
           <p className={kicker}><span className="text-brand-red">Your profile</span> Keep it current</p>
           <h1 className={`${displayHeading} mt-5 text-[clamp(4rem,9vw,9rem)]`}>Edit your <em className="font-inherit not-italic text-brand-red">identity.</em></h1>
-          <div className="mt-12"><ProfileForm initial={toProfileFormValues(profile)} mode="edit" /></div>
+          <div className="mt-12"><ProfileForm fallbackAvatar={member.user.image} initial={toProfileFormValues(profile)} mode="edit" /></div>
         </div>
       </section>
     </main>

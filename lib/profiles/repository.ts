@@ -3,23 +3,56 @@ import { formatEventDate, formatEventTime } from "@/lib/event-data";
 import { prisma } from "@/lib/db/prisma";
 
 const memberProfileSelect = {
-  id: true,
   username: true,
   displayName: true,
   bio: true,
   avatarUrl: true,
+  bannerUrl: true,
   city: true,
   favouriteAnime: true,
   favouriteManga: true,
   favouriteGames: true,
   interests: true,
   creatorType: true,
+  instagramUrl: true,
+  tiktokUrl: true,
+  twitterUrl: true,
+  youtubeUrl: true,
+  twitchUrl: true,
+  websiteUrl: true,
+  currentlyWatching: true,
+  currentlyReading: true,
+  currentlyPlaying: true,
+  profileCompleted: true,
+} satisfies Prisma.ProfileSelect;
+
+const editableProfileSelect = {
+  username: true,
+  displayName: true,
+  bio: true,
+  avatarUrl: true,
+  avatarKey: true,
+  bannerUrl: true,
+  bannerKey: true,
+  city: true,
+  favouriteAnime: true,
+  favouriteManga: true,
+  favouriteGames: true,
+  interests: true,
+  creatorType: true,
+  instagramUrl: true,
+  tiktokUrl: true,
+  twitterUrl: true,
+  youtubeUrl: true,
+  twitchUrl: true,
+  websiteUrl: true,
+  currentlyWatching: true,
+  currentlyReading: true,
+  currentlyPlaying: true,
   profileCompleted: true,
 } satisfies Prisma.ProfileSelect;
 
 const memberUserSelect = {
-  id: true,
-  name: true,
   image: true,
   createdAt: true,
   profile: { select: memberProfileSelect },
@@ -73,20 +106,28 @@ export type MemberEventActivity = {
 };
 
 export type MemberProfile = {
-  userId: string;
   joinedAt: Date;
-  name: string | null;
   image: string | null;
   username: string;
   displayName: string;
   bio: string | null;
   avatarUrl: string | null;
+  bannerUrl: string | null;
   city: string | null;
   favouriteAnime: string | null;
   favouriteManga: string | null;
   favouriteGames: string | null;
   interests: string[];
   creatorType: string | null;
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  twitterUrl: string | null;
+  youtubeUrl: string | null;
+  twitchUrl: string | null;
+  websiteUrl: string | null;
+  currentlyWatching: string | null;
+  currentlyReading: string | null;
+  currentlyPlaying: string | null;
   events: MemberEventActivity[];
   badges: Array<{
     key: string;
@@ -133,20 +174,28 @@ function toMemberProfile(user: MemberUserRecord): MemberProfile | null {
     }));
 
   return {
-    userId: user.id,
     joinedAt: user.createdAt,
-    name: user.name,
     image: user.image,
     username: user.profile.username,
     displayName: user.profile.displayName,
     bio: user.profile.bio,
     avatarUrl: user.profile.avatarUrl,
+    bannerUrl: user.profile.bannerUrl,
     city: user.profile.city,
     favouriteAnime: user.profile.favouriteAnime,
     favouriteManga: user.profile.favouriteManga,
     favouriteGames: user.profile.favouriteGames,
     interests: user.profile.interests,
     creatorType: user.profile.creatorType,
+    instagramUrl: user.profile.instagramUrl,
+    tiktokUrl: user.profile.tiktokUrl,
+    twitterUrl: user.profile.twitterUrl,
+    youtubeUrl: user.profile.youtubeUrl,
+    twitchUrl: user.profile.twitchUrl,
+    websiteUrl: user.profile.websiteUrl,
+    currentlyWatching: user.profile.currentlyWatching,
+    currentlyReading: user.profile.currentlyReading,
+    currentlyPlaying: user.profile.currentlyPlaying,
     events,
     badges: user.badges.map(({ awardedAt, badge }) => ({ ...badge, awardedAt })),
   };
@@ -165,6 +214,10 @@ export async function getMemberProfileByUsername(username: string): Promise<Memb
   return user ? toMemberProfile(user) : null;
 }
 
+export async function getEditableProfileByUserId(userId: string) {
+  return prisma.profile.findUnique({ where: { userId }, select: editableProfileSelect });
+}
+
 export async function updateProfile(userId: string, data: {
   username: string;
   displayName: string;
@@ -176,6 +229,18 @@ export async function updateProfile(userId: string, data: {
   favouriteGames: string | null;
   creatorType: string | null;
   avatarUrl: string | null;
+  avatarKey: string | null;
+  bannerUrl: string | null;
+  bannerKey: string | null;
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  twitterUrl: string | null;
+  youtubeUrl: string | null;
+  twitchUrl: string | null;
+  websiteUrl: string | null;
+  currentlyWatching: string | null;
+  currentlyReading: string | null;
+  currentlyPlaying: string | null;
 }) {
   return prisma.profile.upsert({
     where: { userId },
