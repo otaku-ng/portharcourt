@@ -1,16 +1,3 @@
-export type EventItem = {
-  slug: string;
-  title: string;
-  eyebrow: string;
-  date: string;
-  time: string;
-  location: string;
-  image: string;
-  alt: string;
-  description: string;
-  status: "Next up" | "Archive";
-};
-
 export type StoryItem = {
   slug: string;
   title: string;
@@ -27,48 +14,6 @@ export const navigation = [
   { href: "/blog", label: "Stories" },
   { href: "/gallery", label: "Gallery" },
   { href: "/contact", label: "Contact" },
-];
-
-export const events: EventItem[] = [
-  {
-    slug: "otaku-ph-city-hangout",
-    title: "Otaku PH City Casual Hangout",
-    eyebrow: "Community meetup",
-    date: "17 September 2022",
-    time: "10:00 AM",
-    location: "Pleasure Park, Port Harcourt",
-    image: "/figma/event-01.jpg",
-    alt: "Colourful vintage comic-book covers used in the PH Otakus event design",
-    description:
-      "A relaxed day for anime fans, gamers, manga readers and cosplayers to meet, trade recommendations and enjoy the city together.",
-    status: "Archive",
-  },
-  {
-    slug: "nerd-work-comic-con",
-    title: "Nerd Work Comic Con",
-    eyebrow: "Convention",
-    date: "2022 archive",
-    time: "All day",
-    location: "Port Harcourt",
-    image: "/figma/home-07.jpg",
-    alt: "Vintage illustrated event poster from the PH Otakus design library",
-    description:
-      "A celebration of comics, games, cosplay and the creators building fandom culture in Port Harcourt.",
-    status: "Archive",
-  },
-  {
-    slug: "next-community-session",
-    title: "The Next Community Session",
-    eyebrow: "Announcements soon",
-    date: "Date to be announced",
-    time: "Follow the community",
-    location: "Port Harcourt",
-    image: "/figma/home-08.jpg",
-    alt: "Kakashi collectible photographed against a dark background",
-    description:
-      "Watch this space for the next hangout, watch party or tournament from the PH Otakus crew.",
-    status: "Next up",
-  },
 ];
 
 export const stories: StoryItem[] = [

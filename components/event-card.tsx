@@ -1,14 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { EventItem } from "@/lib/site-data";
+import type { PublicEvent } from "@/lib/event-data";
 import { cardEyebrow, textLink } from "@/lib/tailwind";
 
-export function EventCard({ event, featured = false, variant = "default" }: { event: EventItem; featured?: boolean; variant?: "default" | "listing" | "archive" | "stack" }) {
-  const href = event.slug === "otaku-ph-city-hangout"
-    ? `/events/${event.slug}`
-    : event.status === "Next up"
-      ? "/events#next-up"
-      : "/events#archive";
+export function EventCard({ event, featured = false, variant = "default" }: { event: PublicEvent; featured?: boolean; variant?: "default" | "listing" | "archive" | "stack" }) {
+  const href = `/events/${event.slug}`;
 
   const imageHeight = featured
     ? variant === "listing"
@@ -31,7 +27,7 @@ export function EventCard({ event, featured = false, variant = "default" }: { ev
         <h3 className="mt-2.5 font-display text-[clamp(1.9rem,3vw,3rem)] font-bold tracking-[-0.01em] leading-[0.95] uppercase"><Link href={href}>{event.title}</Link></h3>
         <div className="my-[18px] flex flex-wrap gap-x-7 gap-y-2 border-y border-[var(--line)] py-2.5 text-[0.7rem] font-extrabold tracking-[0.04em] uppercase">
           <span>{event.date}</span>
-          <span>{event.location}</span>
+          <span>{event.displayLocation}</span>
         </div>
         <p className="text-[0.9rem] text-brand-ink-soft">{event.description}</p>
         <Link className={`${textLink} mt-5`} href={href}>View event <span>↗</span></Link>

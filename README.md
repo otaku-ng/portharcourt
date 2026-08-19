@@ -16,6 +16,18 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Local database setup
+
+Events are stored in PostgreSQL through Prisma. For local development:
+
+1. Create a PostgreSQL database named `ph_otakus` (or choose another name).
+2. Copy `.env.example` to `.env` and update `DATABASE_URL` with your local credentials.
+3. Create the database tables with `yarn db:migrate`.
+4. Load the existing PH Otakus events with `yarn db:seed`.
+5. Start the app with `yarn dev`.
+
+Useful database commands are `yarn db:generate`, `yarn db:migrate:deploy`, and `yarn db:studio`.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

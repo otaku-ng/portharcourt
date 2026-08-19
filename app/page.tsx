@@ -1,10 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import { EventCard } from "@/components/event-card";
 import { Newsletter } from "@/components/newsletter";
 import { SectionHeading } from "@/components/section-heading";
 import { StoryCard } from "@/components/story-card";
-import { communityLanes, events, gallery, stories } from "@/lib/site-data";
+import { getArchivedEvents, getUpcomingEvents } from "@/lib/event-data";
+import { communityLanes, gallery, stories } from "@/lib/site-data";
 import {
   button,
   displayHeading,
@@ -29,6 +32,63 @@ const homeGalleryTablet = [
   "max-[820px]:col-span-1 max-[820px]:col-start-1 max-[820px]:row-start-3",
   "max-[820px]:col-span-1 max-[820px]:col-start-2 max-[820px]:row-start-3",
 ];
+
+function HomeEventsFallback() {
+  return (
+    <section className={`${shell} ${sectionPadding}`}>
+      <SectionHeading
+        kicker="02 / Link up in real life"
+        title="Community"
+        accent="events."
+        copy="Hangouts, conventions, watch parties and the sessions that turn usernames into real friendships."
+        href="/events"
+        linkLabel="All events"
+      />
+      <div className="mt-[70px] border-t border-[var(--line)] pt-6 text-brand-ink-soft">Loading community events…</div>
+    </section>
+  );
+}
+
+async function HomeEventsSection() {
+  await connection();
+
+  const [upcomingEvents, archivedEvents] = await Promise.all([
+    getUpcomingEvents(),
+    getArchivedEvents(),
+  ]);
+  const nextEvent = upcomingEvents[0] ?? null;
+
+  return (
+    <section className={`${shell} ${sectionPadding}`}>
+      <SectionHeading
+        kicker="02 / Link up in real life"
+        title="Community"
+        accent="events."
+        copy="Hangouts, conventions, watch parties and the sessions that turn usernames into real friendships."
+        href="/events"
+        linkLabel="All events"
+      />
+      <div className="mt-[70px] grid grid-cols-[1.4fr_0.8fr] gap-[22px] max-[1100px]:grid-cols-1">
+        {nextEvent ? (
+          <EventCard event={nextEvent} featured />
+        ) : (
+          <div className="border-t border-[var(--line)] pt-6">
+            <p className="text-[0.7rem] font-black tracking-[0.13em] text-brand-red uppercase">No next event yet</p>
+            <h3 className="mt-3 font-display text-[clamp(2.8rem,5vw,5.2rem)] leading-[0.9] uppercase">Stay tuned.</h3>
+            <p className="mt-5 max-w-[420px] text-brand-ink-soft">The next community date and venue will be announced soon. Join the crew to hear it first.</p>
+          </div>
+        )}
+        <div className="grid gap-[30px] max-[1100px]:grid-cols-2 max-[560px]:grid-cols-1">
+          {archivedEvents.length > 0 ? archivedEvents.map((event) => (
+            <EventCard event={event} variant="stack" key={event.slug} />
+          )) : (
+            <p className="border-t border-[var(--line)] py-6 text-brand-ink-soft">The event archive is waiting for its first entry.</p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   return (
@@ -275,23 +335,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${shell} ${sectionPadding}`}>
-        <SectionHeading
-          kicker="02 / Link up in real life"
-          title="Community"
-          accent="events."
-          copy="Hangouts, conventions, watch parties and the sessions that turn usernames into real friendships."
-          href="/events"
-          linkLabel="All events"
-        />
-        <div className="mt-[70px] grid grid-cols-[1.4fr_0.8fr] gap-[22px] max-[1100px]:grid-cols-1">
-          <EventCard event={events[2]} featured />
-          <div className="grid gap-[30px] max-[1100px]:grid-cols-2 max-[560px]:grid-cols-1">
-            <EventCard event={events[0]} variant="stack" />
-            <EventCard event={events[1]} variant="stack" />
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<HomeEventsFallback />}>
+        <HomeEventsSection />
+      </Suspense>
 
       <section
         className={`bg-brand-ink py-[clamp(90px,11vw,160px)] text-white`}

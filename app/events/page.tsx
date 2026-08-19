@@ -3,7 +3,7 @@ import Link from "next/link";
 import { EventCard } from "@/components/event-card";
 import { Newsletter } from "@/components/newsletter";
 import { PageIntro } from "@/components/page-intro";
-import { events } from "@/lib/site-data";
+import { getArchivedEvents, getUpcomingEvents } from "@/lib/event-data";
 import { button, displayHeading, kicker, sectionPadding, shell } from "@/lib/tailwind";
 
 export const metadata: Metadata = {
@@ -11,7 +11,15 @@ export const metadata: Metadata = {
   description: "Community events, meetups and the PH Otakus archive in Port Harcourt.",
 };
 
-export default function EventsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function EventsPage() {
+  const [upcomingEvents, archivedEvents] = await Promise.all([
+    getUpcomingEvents(),
+    getArchivedEvents(),
+  ]);
+  const nextEvent = upcomingEvents[0] ?? null;
+
   return (
     <main className="overflow-hidden">
       <PageIntro
@@ -32,7 +40,15 @@ export default function EventsPage() {
           <p className="mb-7">The next community date and venue will be announced soon. Join the crew to hear it first.</p>
           <Link className={`${button} bg-brand-red text-white hover:bg-brand-coral`} href="/community#join">Join for updates <span>↗</span></Link>
         </div>
-        <EventCard event={events[2]} featured variant="listing" />
+        {nextEvent ? (
+          <EventCard event={nextEvent} featured variant="listing" />
+        ) : (
+          <div className="border-t border-[var(--line)] pt-6">
+            <p className="text-[0.7rem] font-black tracking-[0.13em] text-brand-red uppercase">No next event yet</p>
+            <h3 className="mt-3 font-display text-[clamp(2.8rem,5vw,5.2rem)] leading-[0.9] uppercase">Stay tuned.</h3>
+            <p className="mt-5 max-w-[420px] text-brand-ink-soft">The next community date and venue will be announced soon. Join the crew to hear it first.</p>
+          </div>
+        )}
       </section>
 
       <section className={`${shell} ${sectionPadding} border-t border-[var(--line)]`} id="archive">
@@ -41,7 +57,9 @@ export default function EventsPage() {
           <h2 className={`${displayHeading} text-[clamp(3.1rem,6.5vw,6.8rem)]`}>Good rooms. Great people.<br /><em className="font-inherit not-italic text-brand-red">Plenty of memories.</em></h2>
         </div>
         <div className="mt-[70px] grid grid-cols-2 gap-7 max-[820px]:grid-cols-1">
-          {events.slice(0, 2).map((event) => <EventCard event={event} variant="archive" key={event.slug} />)}
+          {archivedEvents.length > 0 ? archivedEvents.map((event) => <EventCard event={event} variant="archive" key={event.slug} />) : (
+            <p className="border-t border-[var(--line)] py-6 text-brand-ink-soft">The event archive is waiting for its first entry.</p>
+          )}
         </div>
       </section>
 
