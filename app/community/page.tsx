@@ -5,7 +5,7 @@ import { Newsletter } from "@/components/newsletter";
 import { PageIntro } from "@/components/page-intro";
 import { communityLanes } from "@/lib/site-data";
 import { WhatsAppLink } from "@/components/whatsapp-link";
-import { button, displayHeading, kicker, sectionPadding, shell } from "@/lib/tailwind";
+import { button, displayHeading, kicker, sectionPadding, shell, textLink } from "@/lib/tailwind";
 
 export const metadata: Metadata = {
   title: "Community",
@@ -45,6 +45,17 @@ export default function CommunityPage() {
             <p className="mt-[18px] text-[0.82rem]">{lane.copy}</p>
           </article>
         ))}
+      </section>
+
+      <section className={`${shell} mb-[clamp(90px,11vw,150px)] grid grid-cols-[1fr_auto] items-end gap-[8vw] border-y border-[var(--line)] py-[58px] max-[820px]:grid-cols-1 max-[820px]:items-start max-[820px]:gap-8`}>
+        <div>
+          <p className={kicker}><span className="text-brand-blue">Find your people</span> Member directory</p>
+          <h2 className={`${displayHeading} mt-5 text-[clamp(3rem,5.5vw,6rem)]`}>Meet the <em className="font-inherit not-italic text-brand-red">community.</em></h2>
+        </div>
+        <div className="max-w-[360px]">
+          <p>Browse completed member profiles by name, interest or creator type, then find out what your fellow Otakus are into.</p>
+          <Link className={`${textLink} mt-7`} href="/community/members">Browse members <span>↗</span></Link>
+        </div>
       </section>
 
       <section className={`${shell} mb-[clamp(90px,11vw,150px)] grid min-h-[650px] grid-cols-[0.9fr_1.1fr] items-center gap-[4vw] overflow-hidden bg-brand-ink pr-[7vw] text-white max-[820px]:grid-cols-1 max-[820px]:px-8 max-[820px]:pb-[50px] max-[560px]:px-[22px] max-[560px]:pb-9`}>
