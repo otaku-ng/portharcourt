@@ -14,12 +14,14 @@ export function EventRsvpPanel({
   goingCount,
   interestedCount,
   currentUserRsvp,
+  rsvpOpen,
 }: {
   slug: string;
   signedIn: boolean;
   goingCount: number;
   interestedCount: number;
   currentUserRsvp: RsvpStatus | null;
+  rsvpOpen: boolean;
 }) {
   const [state, formAction, pending] = useActionState(rsvpAction, initialState);
 
@@ -30,7 +32,13 @@ export function EventRsvpPanel({
         <span>{goingCount} Going</span>
         <span>{interestedCount} Interested</span>
       </div>
-      {signedIn ? (
+      {!rsvpOpen ? (
+        <div className="mt-5 border-l-4 border-brand-ink bg-brand-paper-dark px-4 py-3 text-sm">
+          <p className="font-black tracking-[0.08em] uppercase">RSVP closed</p>
+          <p className="mt-1 text-brand-ink-soft">This event is no longer accepting new RSVPs.</p>
+          {currentUserRsvp ? <p className="mt-2 text-brand-ink-soft">Your RSVP is recorded as <span className="font-black uppercase">{currentUserRsvp.toLowerCase()}</span>.</p> : null}
+        </div>
+      ) : signedIn ? (
         <form className="mt-5 grid gap-3" action={formAction}>
           <input name="slug" type="hidden" value={slug} />
           <div className="flex flex-wrap gap-2">

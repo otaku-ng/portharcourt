@@ -7,6 +7,10 @@ export type MemberContext = {
   user: NonNullable<Awaited<ReturnType<typeof getMemberById>>>;
 };
 
+function isNextDynamicServerUsage(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "digest" in error && error.digest === "DYNAMIC_SERVER_USAGE";
+}
+
 export async function getMember(): Promise<MemberContext | null> {
   try {
     const session = await auth();
@@ -14,9 +18,18 @@ export async function getMember(): Promise<MemberContext | null> {
     if (!userId) return null;
 
     const user = await getMemberById(userId);
-    return user ? { userId, user } : null;
-  } catch {
-    return null;
+    if (!user) {
+      throw new Error("The signed-in member could not be loaded.");
+    }
+
+    return { userId, user };
+  } catch (error) {
+    if (!isNextDynamicServerUsage(error)) {
+      console.error("[auth] Unexpected member lookup failure", {
+        error: error instanceof Error ? { name: error.name, message: error.message } : { message: "Unknown error" },
+      });
+    }
+    throw error;
   }
 }
 

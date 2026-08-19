@@ -1,6 +1,7 @@
-import { RsvpStatus } from "@prisma/client";
+import { EventStatus, RsvpStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { awardBadge, getBadgeDefinitions } from "@/lib/badges/repository";
+import { getGoingRsvpMembersForEvent } from "@/lib/rsvp/repository";
 
 const AUTOMATIC_BADGE_KEYS = ["FIRST_EVENT", "FIVE_EVENTS"] as const;
 
@@ -11,7 +12,7 @@ export async function evaluateBadgesForUser(userId: string): Promise<string[]> {
       status: RsvpStatus.GOING,
       event: {
         published: true,
-        startAt: { lt: new Date() },
+        status: EventStatus.ARCHIVED,
       },
     },
   });
@@ -34,4 +35,29 @@ export async function evaluateBadgesForUser(userId: string): Promise<string[]> {
   }
 
   return awarded;
+}
+
+/**
+ * MVP attendance semantics: a GOING RSVP on a published event after its
+ * UPCOMING → ARCHIVED transition is treated as attendance. A future check-in
+ * model can replace this rule without changing the badge definitions.
+ */
+export async function evaluateBadgesForCompletedEvent(eventId: string) {
+  const members = await getGoingRsvpMembersForEvent(eventId);
+  const evaluatedMembers: typeof members = [];
+
+  for (const member of members) {
+    try {
+      await evaluateBadgesForUser(member.userId);
+    } catch (error) {
+      console.error("[badges] Could not evaluate completed-event badges", {
+        eventId,
+        userId: member.userId,
+        error: error instanceof Error ? { name: error.name, message: error.message } : { message: "Unknown error" },
+      });
+    }
+    evaluatedMembers.push(member);
+  }
+
+  return evaluatedMembers;
 }

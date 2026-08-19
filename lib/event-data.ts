@@ -1,6 +1,7 @@
 import { Prisma, EventStatus, RsvpStatus } from "@prisma/client";
 import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
+import { isEventRsvpOpen } from "@/lib/rsvp/repository";
 
 export type PublicEvent = {
   slug: string;
@@ -21,6 +22,7 @@ export type PublicEventDetails = PublicEvent & {
   goingCount: number;
   interestedCount: number;
   currentUserRsvp: RsvpStatus | null;
+  rsvpOpen: boolean;
 };
 
 const publicEventSelect = {
@@ -106,6 +108,11 @@ function toPublicEventDetails(
     goingCount,
     interestedCount,
     currentUserRsvp,
+    rsvpOpen: isEventRsvpOpen({
+      published: true,
+      status: event.status,
+      startAt: event.startAt,
+    }),
   };
 }
 

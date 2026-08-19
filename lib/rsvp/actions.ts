@@ -4,8 +4,7 @@ import { RsvpStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { getMember } from "@/lib/auth/member";
 import { getMemberProfileByUserId } from "@/lib/profiles/repository";
-import { evaluateBadgesForUser } from "@/lib/badges/service";
-import { getPublishedEventForRsvp, removeEventRsvp, setEventRsvp } from "@/lib/rsvp/repository";
+import { getRsvpEligibleEventBySlug, removeEventRsvp, setEventRsvp } from "@/lib/rsvp/repository";
 import { parseRsvpAction } from "@/lib/rsvp/validation";
 
 export type RsvpActionState = {
@@ -23,7 +22,7 @@ export async function rsvpAction(
   const parsed = parseRsvpAction(formData);
   if (!parsed.success) return { error: "Choose a valid RSVP option." };
 
-  const event = await getPublishedEventForRsvp(parsed.data.slug);
+  const event = await getRsvpEligibleEventBySlug(parsed.data.slug);
   if (!event) return { error: "This event is not available for RSVPs." };
 
   try {
@@ -33,7 +32,6 @@ export async function rsvpAction(
       await setEventRsvp(member.userId, event.id, parsed.data.status === "GOING" ? RsvpStatus.GOING : RsvpStatus.INTERESTED);
     }
 
-    await evaluateBadgesForUser(member.userId);
   } catch {
     return { error: "We could not update your RSVP. Try again." };
   }

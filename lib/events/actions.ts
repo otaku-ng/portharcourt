@@ -4,6 +4,7 @@ import { EventStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
+import { evaluateBadgesForCompletedEvent } from "@/lib/badges/service";
 import { resolveEventCoverImage } from "@/lib/events/cover-image";
 import {
   createEvent,
@@ -42,6 +43,25 @@ function revalidateEventPaths(slug: string, previousSlug?: string) {
   revalidatePath("/events");
   revalidatePath(`/events/${slug}`);
   if (previousSlug && previousSlug !== slug) revalidatePath(`/events/${previousSlug}`);
+}
+
+async function evaluateCompletedEventBadges(eventId: string, eventSlug: string): Promise<void> {
+  try {
+    const evaluatedMembers = await evaluateBadgesForCompletedEvent(eventId);
+    if (evaluatedMembers.length === 0) return;
+
+    revalidatePath("/profile");
+    revalidatePath(`/events/${eventSlug}`);
+    for (const member of evaluatedMembers) {
+      if (member.username) revalidatePath(`/members/${member.username}`);
+    }
+  } catch (error) {
+    console.error("[events] Event saved, but completed-event badge evaluation could not start", {
+      eventId,
+      eventSlug,
+      error: error instanceof Error ? { name: error.name, message: error.message } : { message: "Unknown error" },
+    });
+  }
 }
 
 function getWriteData(
@@ -115,12 +135,17 @@ export async function updateEventAction(
   const coverImage = resolveEventCoverImage(parsed.data.coverImageKey, existingEvent);
   if ("error" in coverImage) return { fieldErrors: { coverImageKey: coverImage.error } };
 
+  let event;
   try {
-    const event = await updateEvent(id, getWriteData(parsed.data, coverImage, slug));
-    revalidateEventPaths(event.slug, existingEvent.slug);
+    event = await updateEvent(id, getWriteData(parsed.data, coverImage, slug));
   } catch (error) {
     if (isUniqueSlugError(error)) return { fieldErrors: { slug: "That slug is already in use." }, error: "Choose a different slug." };
     return { error: "Could not save the event. Check the fields and try again." };
+  }
+
+  revalidateEventPaths(event.slug, existingEvent.slug);
+  if (existingEvent.status === EventStatus.UPCOMING && event.status === EventStatus.ARCHIVED) {
+    await evaluateCompletedEventBadges(event.id, event.slug);
   }
 
   redirect("/admin/events");

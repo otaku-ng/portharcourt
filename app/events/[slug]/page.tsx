@@ -87,6 +87,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             currentUserRsvp={event.currentUserRsvp}
             goingCount={event.goingCount}
             interestedCount={event.interestedCount}
+            rsvpOpen={event.rsvpOpen}
             signedIn={Boolean(member)}
             slug={event.slug}
           />
