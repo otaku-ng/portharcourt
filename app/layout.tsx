@@ -19,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     icons: {
       icon: [
-        { url: "/icon.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
-        { url: "/favicon-dark.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
+        { url: "/figma/ph-otakus-logo-primary.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
+        { url: "/figma/ph-otakus-logo-inverse.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
       ],
     },
     keywords: ["PH Otakus", "Port Harcourt anime", "Nigeria cosplay", "gaming community", "manga"],
