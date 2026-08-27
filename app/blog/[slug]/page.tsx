@@ -19,10 +19,19 @@ export async function generateMetadata({ params }: StoryDetailPageProps): Promis
   return {
     title: story.title,
     description: story.excerpt,
+    alternates: { canonical: `/blog/${story.slug}` },
     openGraph: {
       title: story.title,
       description: story.excerpt,
+      siteName: "PH Otakus",
+      url: `/blog/${story.slug}`,
       images: [{ url: story.image, alt: story.alt }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: story.title,
+      description: story.excerpt,
+      images: [story.image],
     },
   };
 }

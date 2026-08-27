@@ -10,11 +10,29 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: MemberPageProps): Promise<Metadata> {
   const { username } = await params;
   const profile = await getMemberProfileByUsername(username);
-  if (!profile) return { title: "Member not found" };
+  if (!profile) notFound();
+
+  const description = profile.bio?.trim() || `${profile.displayName} (@${profile.username}) is part of the PH Otakus community in Port Harcourt.`;
+  const previewImage = profile.bannerUrl ?? profile.avatarUrl ?? profile.image ?? "/figma/home-05.jpg";
 
   return {
     title: `${profile.displayName} (@${profile.username})`,
-    description: profile.bio ?? `${profile.displayName}'s PH Otakus member profile.`,
+    description,
+    alternates: { canonical: `/members/${profile.username}` },
+    openGraph: {
+      title: `${profile.displayName} (@${profile.username})`,
+      description,
+      siteName: "PH Otakus",
+      type: "profile",
+      url: `/members/${profile.username}`,
+      images: [{ url: previewImage, alt: `${profile.displayName}'s PH Otakus profile` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${profile.displayName} (@${profile.username})`,
+      description,
+      images: [previewImage],
+    },
   };
 }
 

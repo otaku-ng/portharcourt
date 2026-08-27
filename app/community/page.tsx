@@ -10,6 +10,7 @@ import { button, displayHeading, kicker, sectionPadding, shell, textLink } from 
 export const metadata: Metadata = {
   title: "Community",
   description: "Meet the fans and creators who make PH Otakus a home for fandom in Port Harcourt.",
+  alternates: { canonical: "/community" },
 };
 
 export default function CommunityPage() {

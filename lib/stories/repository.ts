@@ -112,6 +112,14 @@ export async function getPublishedStories(): Promise<PublicStory[]> {
   return stories.map(mapPublicStory);
 }
 
+export async function getPublishedStorySitemapEntries(): Promise<Array<{ slug: string; updatedAt: Date }>> {
+  return prisma.story.findMany({
+    where: { status: StoryStatus.PUBLISHED },
+    orderBy: { updatedAt: "desc" },
+    select: { slug: true, updatedAt: true },
+  });
+}
+
 export async function getPublishedStorySummaries(limit = 3): Promise<StorySummary[]> {
   const stories = await getPublishedStories();
   return stories.slice(0, limit).map((story) => ({

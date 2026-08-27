@@ -210,6 +210,14 @@ export async function getPublishedGalleryAlbums(): Promise<PublicGalleryAlbum[]>
   return albums.map(mapPublicAlbum);
 }
 
+export async function getPublishedGalleryAlbumSitemapEntries(): Promise<Array<{ slug: string; updatedAt: Date }>> {
+  return prisma.galleryAlbum.findMany({
+    where: { published: true },
+    orderBy: { updatedAt: "desc" },
+    select: { slug: true, updatedAt: true },
+  });
+}
+
 export const getPublishedGalleryAlbumBySlug = cache(async (slug: string): Promise<PublicGalleryAlbum | null> => {
   const album = await prisma.galleryAlbum.findFirst({
     where: { slug, published: true },

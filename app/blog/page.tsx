@@ -9,6 +9,7 @@ import { button, cardEyebrow, displayHeading, kicker, sectionPadding, shell, tex
 export const metadata: Metadata = {
   title: "Stories",
   description: "Community notes, recommendations and stories from PH Otakus.",
+  alternates: { canonical: "/blog" },
 };
 
 export const dynamic = "force-dynamic";

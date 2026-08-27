@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Sign in",
   description:
     "Sign in to create your PH Otakus member profile and RSVP to community events.",
+  robots: { index: false, follow: false },
 };
 
 const oauthErrors: Record<string, string> = {

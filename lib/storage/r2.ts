@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const R2_UPLOAD_EXPIRES_IN_SECONDS = 5 * 60;
@@ -157,6 +162,45 @@ export async function createEventCoverUpload(objectKey: string, contentType: Eve
 export async function createProfileMediaUpload(objectKey: string, contentType: ImageContentType) {
   if (!isSafeProfileObjectKey(objectKey)) throw new Error("Invalid profile image object key.");
   return createImageUpload(objectKey, contentType);
+}
+
+function getProfileMediaPrefix(userId: string): string {
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(userId)) throw new Error("The profile media owner was invalid.");
+  return `profiles/${userId}/`;
+}
+
+/** Delete every object belonging to one authenticated member's profile prefix. */
+export async function deleteProfileMedia(userId: string): Promise<void> {
+  const config = getR2Config();
+  const prefix = getProfileMediaPrefix(userId);
+  const storageClient = getR2Client(config);
+  let continuationToken: string | undefined;
+
+  do {
+    const result = await storageClient.send(new ListObjectsV2Command({
+      Bucket: config.bucketName,
+      Prefix: prefix,
+      ContinuationToken: continuationToken,
+    }));
+    const keys = (result.Contents ?? [])
+      .map((object) => object.Key)
+      .filter((key): key is string => typeof key === "string" && key.startsWith(prefix));
+
+    for (let index = 0; index < keys.length; index += 1000) {
+      const batch = keys.slice(index, index + 1000);
+      const deletion = await storageClient.send(new DeleteObjectsCommand({
+        Bucket: config.bucketName,
+        Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
+      }));
+      if (deletion.Errors?.length) {
+        throw new Error("Some profile media could not be deleted from storage.");
+      }
+    }
+
+    if (!result.IsTruncated) break;
+    if (!result.NextContinuationToken) throw new Error("Profile media storage returned an incomplete listing.");
+    continuationToken = result.NextContinuationToken;
+  } while (true);
 }
 
 export function getStorageConfigurationErrorMessage(error: unknown): string {

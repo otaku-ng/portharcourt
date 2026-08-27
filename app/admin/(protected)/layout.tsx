@@ -5,6 +5,9 @@ import { adminRoleLabel, requireAdmin } from "@/lib/auth/admin";
 import { MemberAvatar } from "@/components/member-avatar";
 
 export const dynamic = "force-dynamic";
+export const metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function ProtectedAdminLayout({ children }: { children: ReactNode }) {
   const admin = await requireAdmin("/admin");
@@ -29,9 +32,9 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
     <main className="min-h-[calc(100svh-80px)] bg-brand-paper-dark">
       <div className="mx-auto w-[min(1180px,calc(100vw-64px))] py-12 max-[820px]:w-[calc(100vw_-_32px)] max-[820px]:py-8">
         <div className="mb-10 flex flex-wrap items-center justify-between gap-5 border-b border-[var(--line)] pb-5">
-          <div>
+          <div className="min-w-0 max-w-full">
             <p className="text-[0.68rem] font-black tracking-[0.15em] text-brand-red uppercase">PH Otakus / Admin</p>
-            <nav className="mt-3 flex gap-5 text-[0.78rem] font-black tracking-[0.08em] uppercase">
+            <nav aria-label="Admin navigation" className="mt-3 flex max-w-full flex-wrap gap-x-5 gap-y-2 text-[0.78rem] font-black tracking-[0.08em] uppercase max-[560px]:gap-x-4">
               <Link className="hover:text-brand-red" href="/admin/events">Events</Link>
               <Link className="hover:text-brand-red" href="/admin/gallery">Gallery</Link>
               <Link className="hover:text-brand-red" href="/admin/stories">Stories</Link>
@@ -39,11 +42,11 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
               {admin.role === "SUPER_ADMIN" ? <Link className="hover:text-brand-red" href="/admin/admins">Admins</Link> : null}
             </nav>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-4 max-[560px]:gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <MemberAvatar name={identityName} image={identityImage} size="small" />
-              <div>
-                <p className="max-w-[180px] truncate text-sm font-black">{identityName}</p>
+              <div className="min-w-0">
+                <p className="max-w-[180px] truncate text-sm font-black max-[560px]:max-w-[130px]">{identityName}</p>
                 <p className="mt-1 text-[0.62rem] font-black tracking-[0.12em] text-brand-red uppercase">{adminRoleLabel(admin.role)}</p>
               </div>
             </div>

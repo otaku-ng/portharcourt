@@ -27,6 +27,7 @@ const galleryTablet = [
 export const metadata: Metadata = {
   title: "Gallery",
   description: "The PH Otakus visual archive—community, events, collectibles and culture.",
+  alternates: { canonical: "/gallery" },
 };
 
 export const dynamic = "force-dynamic";

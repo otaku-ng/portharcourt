@@ -3,20 +3,20 @@ import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { getSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 
 const title = "PH Otakus — Port Harcourt's Otaku Community";
 const description = "Anime, manga, gaming, cosplay, events and community stories from Port Harcourt, Nigeria.";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const requestHeaders = await headers();
-  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
-  const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const siteOrigin = getSiteOrigin(await headers());
 
   return {
-    metadataBase: new URL(`${protocol}://${host}`),
+    metadataBase: new URL(siteOrigin),
     title: { default: title, template: "%s — PH Otakus" },
     description,
+    alternates: { canonical: "/" },
     icons: {
       icon: [
         { url: "/figma/ph-otakus-logo-primary.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
@@ -27,7 +27,9 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
+      siteName: "PH Otakus",
       type: "website",
+      url: "/",
       images: [{ url: "/figma/home-05.jpg", width: 1080, height: 810, alt: "PH Otakus community members in Port Harcourt" }],
     },
     twitter: {

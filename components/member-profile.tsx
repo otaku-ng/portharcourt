@@ -42,7 +42,7 @@ export function MemberProfileView({ profile, own = false }: { profile: MemberPro
               <p className="mt-3 text-sm font-black tracking-[0.08em] uppercase">@{profile.username}</p>
             </div>
           </div>
-          {own ? <div className="flex flex-wrap gap-3"><Link className={`${button} bg-brand-red text-white hover:bg-brand-coral`} href="/profile/edit">Edit profile <span>↗</span></Link><Link className={`${button} border-brand-ink hover:bg-brand-ink hover:text-white`} href={`/members/${profile.username}`}>Public view <span>↗</span></Link></div> : null}
+          {own ? <div className="flex flex-wrap items-center gap-3"><Link className={`${button} bg-brand-red text-white hover:bg-brand-coral`} href="/profile/edit">Edit profile <span>↗</span></Link>{profile.isPublic ? <Link className={`${button} border-brand-ink hover:bg-brand-ink hover:text-white`} href={`/members/${profile.username}`}>Public view <span>↗</span></Link> : <span className="border border-brand-red px-4 py-3 text-[0.7rem] font-black tracking-[0.07em] text-brand-red uppercase" role="status">Hidden from directory</span>}</div> : null}
         </div>
 
         <div className="mt-12 grid grid-cols-[1.05fr_0.95fr] gap-[9vw] max-[820px]:grid-cols-1 max-[820px]:gap-14">

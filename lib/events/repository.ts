@@ -68,6 +68,14 @@ export async function getAdminEvents(): Promise<AdminEvent[]> {
   });
 }
 
+export async function getPublishedEventSitemapEntries(): Promise<Array<{ slug: string; updatedAt: Date }>> {
+  return prisma.event.findMany({
+    where: { published: true },
+    orderBy: { updatedAt: "desc" },
+    select: { slug: true, updatedAt: true },
+  });
+}
+
 export async function getAdminEventById(id: string): Promise<AdminEvent | null> {
   return prisma.event.findUnique({
     where: { id },
