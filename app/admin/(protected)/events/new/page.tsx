@@ -7,6 +7,9 @@ const initialEvent: AdminEventFormData = {
   slug: "",
   eyebrow: "Community event",
   description: "",
+  content: "",
+  registrationUrl: "",
+  registrationLabel: "",
   startAt: "",
   endAt: "",
   dateLabel: "",
@@ -18,6 +21,7 @@ const initialEvent: AdminEventFormData = {
   coverImageAlt: "",
   status: "UPCOMING",
   published: false,
+  media: [],
 };
 
 export default function NewAdminEventPage() {

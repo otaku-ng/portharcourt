@@ -1,6 +1,6 @@
 "use server";
 
-import { EventStatus } from "@prisma/client";
+import { EventMediaType, EventStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -13,9 +13,11 @@ import {
   publishEvent,
   unpublishEvent,
   updateEvent,
+  type EventMediaWriteData,
   type EventWriteData,
 } from "@/lib/events/repository";
 import { getZodFieldErrors, normalizeSlug, parseEventForm } from "@/lib/events/validation";
+import { getPublicUrlForEventMediaObjectKey, isSafeEventMediaObjectKey } from "@/lib/storage/r2";
 
 export type EventActionState = {
   error?: string;
@@ -74,6 +76,9 @@ function getWriteData(
     title: input.title,
     eyebrow: input.eyebrow,
     description: input.description,
+    content: input.content,
+    registrationUrl: input.registrationUrl,
+    registrationLabel: input.registrationLabel,
     startAt: input.startAt,
     endAt: input.endAt,
     dateLabel: input.dateLabel,
@@ -86,6 +91,57 @@ function getWriteData(
     status: input.status === "UPCOMING" ? EventStatus.UPCOMING : EventStatus.ARCHIVED,
     published: input.published,
   };
+}
+
+function getMediaWriteData(
+  media: NonNullable<ReturnType<typeof parseEventForm>["data"]>["media"],
+  existingMedia: Array<{ id: string; objectKey: string | null; url: string }>,
+  eventId: string,
+): EventMediaWriteData[] | { error: string } {
+  const existingById = new Map(existingMedia.map((item) => [item.id, item]));
+  const seenIds = new Set<string>();
+  const seenObjectKeys = new Set(existingMedia.map((item) => item.objectKey).filter((key): key is string => Boolean(key)));
+
+  try {
+    return media.map((item, sortOrder) => {
+      if (item.id) {
+        const existing = existingById.get(item.id);
+        if (!existing || seenIds.has(item.id) || (item.objectKey || null) !== existing.objectKey) {
+          throw new Error("One of the existing media items is no longer valid. Refresh and try again.");
+        }
+        seenIds.add(item.id);
+
+        return {
+          objectKey: existing.objectKey,
+          url: existing.url,
+          alt: item.alt,
+          caption: item.caption,
+          type: item.type === "FLYER" ? EventMediaType.FLYER : EventMediaType.IMAGE,
+          sortOrder,
+        };
+      }
+
+      const objectKey = item.objectKey?.trim() || "";
+      if (!objectKey || !isSafeEventMediaObjectKey(objectKey, eventId)) {
+        throw new Error("One of the uploaded media references is invalid. Upload it again.");
+      }
+      if (seenObjectKeys.has(objectKey)) {
+        throw new Error("A media item was added more than once. Remove the duplicate and try again.");
+      }
+      seenObjectKeys.add(objectKey);
+
+      return {
+        objectKey,
+        url: getPublicUrlForEventMediaObjectKey(objectKey, eventId),
+        alt: item.alt,
+        caption: item.caption,
+        type: item.type === "FLYER" ? EventMediaType.FLYER : EventMediaType.IMAGE,
+        sortOrder,
+      };
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "The event media could not be saved." };
+  }
 }
 
 export async function createEventAction(
@@ -102,16 +158,18 @@ export async function createEventAction(
 
   const coverImage = resolveEventCoverImage(parsed.data.coverImageKey);
   if ("error" in coverImage) return { fieldErrors: { coverImageKey: coverImage.error } };
+  if (parsed.data.media.length > 0) return { fieldErrors: { media: "Save the event before adding media." } };
 
+  let event: Awaited<ReturnType<typeof createEvent>>;
   try {
-    const event = await createEvent(getWriteData(parsed.data, coverImage, slug));
+    event = await createEvent(getWriteData(parsed.data, coverImage, slug));
     revalidateEventPaths(event.slug);
   } catch (error) {
     if (isUniqueSlugError(error)) return { fieldErrors: { slug: "That slug is already in use." }, error: "Choose a different slug." };
     return { error: "Could not save the event. Check the fields and try again." };
   }
 
-  redirect("/admin/events");
+  redirect(`/admin/events/${event.id}`);
 }
 
 export async function updateEventAction(
@@ -137,7 +195,9 @@ export async function updateEventAction(
 
   let event;
   try {
-    event = await updateEvent(id, getWriteData(parsed.data, coverImage, slug));
+    const media = getMediaWriteData(parsed.data.media, existingEvent.media, id);
+    if ("error" in media) return { fieldErrors: { media: media.error }, error: "Check the event media." };
+    event = await updateEvent(id, getWriteData(parsed.data, coverImage, slug), media);
   } catch (error) {
     if (isUniqueSlugError(error)) return { fieldErrors: { slug: "That slug is already in use." }, error: "Choose a different slug." };
     return { error: "Could not save the event. Check the fields and try again." };

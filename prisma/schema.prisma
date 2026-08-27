@@ -11,6 +11,11 @@ enum EventStatus {
   ARCHIVED
 }
 
+enum EventMediaType {
+  IMAGE
+  FLYER
+}
+
 enum StoryStatus {
   DRAFT
   PUBLISHED
@@ -38,6 +43,9 @@ model Event {
   title         String
   eyebrow       String
   description   String
+  content       String?
+  registrationUrl   String?
+  registrationLabel String?
   startAt       DateTime?
   endAt         DateTime?
   dateLabel     String?
@@ -53,9 +61,26 @@ model Event {
   updatedAt     DateTime    @updatedAt
 
   galleryAlbums GalleryAlbum[]
+  media         EventMedia[]
   rsvps         EventRSVP[]
 
   @@index([published, status, startAt])
+}
+
+model EventMedia {
+  id        String         @id @default(cuid())
+  eventId   String
+  url       String
+  objectKey String?
+  alt       String
+  caption   String?
+  type      EventMediaType @default(IMAGE)
+  sortOrder Int            @default(0)
+  createdAt DateTime       @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, sortOrder])
 }
 
 model User {

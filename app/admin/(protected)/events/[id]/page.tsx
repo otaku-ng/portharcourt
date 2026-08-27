@@ -16,6 +16,9 @@ export default async function EditAdminEventPage({ params }: { params: Promise<{
     slug: event.slug,
     eyebrow: event.eyebrow,
     description: event.description,
+    content: event.content ?? "",
+    registrationUrl: event.registrationUrl ?? "",
+    registrationLabel: event.registrationLabel ?? "",
     startAt: formatDateTimeInput(event.startAt),
     endAt: formatDateTimeInput(event.endAt),
     dateLabel: event.dateLabel ?? "",
@@ -27,6 +30,15 @@ export default async function EditAdminEventPage({ params }: { params: Promise<{
     coverImageAlt: event.coverImageAlt,
     status: event.status,
     published: event.published,
+    media: event.media.map((media) => ({
+      clientId: media.id,
+      id: media.id,
+      objectKey: media.objectKey ?? undefined,
+      url: media.url,
+      alt: media.alt,
+      caption: media.caption ?? "",
+      type: media.type,
+    })),
   };
 
   return (
@@ -47,7 +59,7 @@ export default async function EditAdminEventPage({ params }: { params: Promise<{
           </form>
         </div>
       </div>
-      <p className="mt-5 max-w-[620px] text-brand-ink-soft">Keep the current cover or replace it with a new direct-to-R2 upload. Replacing an image does not delete the previous object.</p>
+      <p className="mt-5 max-w-[620px] text-brand-ink-soft">Keep the current cover or replace it with a new direct-to-R2 upload. Add event-specific content and media as the details take shape.</p>
       <div className="mt-12 max-w-[980px]"><AdminEventForm action={updateEventAction} initial={initial} /></div>
     </section>
   );

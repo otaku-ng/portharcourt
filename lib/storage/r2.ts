@@ -102,6 +102,13 @@ export function isSafeEventObjectKey(objectKey: string): boolean {
   return /^events\/[A-Za-z0-9_-]+\/[0-9a-f-]{36}\.(jpg|png|webp|avif)$/.test(objectKey);
 }
 
+export function isSafeEventMediaObjectKey(objectKey: string, eventId?: string): boolean {
+  const eventPattern = eventId
+    ? eventId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    : "[A-Za-z0-9_-]{1,80}";
+  return new RegExp(`^events/${eventPattern}/media/[0-9a-f-]{36}\\.(jpg|png|webp|avif)$`).test(objectKey);
+}
+
 function isSafeScopedObjectKey(objectKey: string, folder: "gallery" | "stories"): boolean {
   return new RegExp(`^${folder}/[A-Za-z0-9_-]+/[0-9a-f-]{36}\\.(jpg|png|webp|avif)$`).test(objectKey);
 }
@@ -121,7 +128,7 @@ export function isSafeStoryObjectKey(objectKey: string): boolean {
 }
 
 export function getPublicUrlForObjectKey(objectKey: string): string {
-  if (!isSafeEventObjectKey(objectKey) && !isSafeGalleryObjectKey(objectKey) && !isSafeStoryObjectKey(objectKey) && !isSafeProfileObjectKey(objectKey)) {
+  if (!isSafeEventObjectKey(objectKey) && !isSafeEventMediaObjectKey(objectKey) && !isSafeGalleryObjectKey(objectKey) && !isSafeStoryObjectKey(objectKey) && !isSafeProfileObjectKey(objectKey)) {
     throw new Error("Invalid image object key.");
   }
 
@@ -131,6 +138,14 @@ export function getPublicUrlForObjectKey(objectKey: string): string {
 export function getPublicUrlForEventObjectKey(objectKey: string): string {
   if (!isSafeEventObjectKey(objectKey)) {
     throw new Error("Invalid event image object key.");
+  }
+
+  return getPublicUrlForObjectKey(objectKey);
+}
+
+export function getPublicUrlForEventMediaObjectKey(objectKey: string, eventId?: string): string {
+  if (!isSafeEventMediaObjectKey(objectKey, eventId)) {
+    throw new Error("Invalid event media object key.");
   }
 
   return getPublicUrlForObjectKey(objectKey);
@@ -156,6 +171,11 @@ export async function createImageUpload(objectKey: string, contentType: ImageCon
 }
 
 export async function createEventCoverUpload(objectKey: string, contentType: EventCoverImageType) {
+  return createImageUpload(objectKey, contentType);
+}
+
+export async function createEventMediaUpload(objectKey: string, contentType: EventCoverImageType, eventId?: string) {
+  if (!isSafeEventMediaObjectKey(objectKey, eventId)) throw new Error("Invalid event media object key.");
   return createImageUpload(objectKey, contentType);
 }
 

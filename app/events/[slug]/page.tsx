@@ -4,9 +4,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Newsletter } from "@/components/newsletter";
 import { EventRsvpPanel } from "@/components/event-rsvp-panel";
+import { MarkdownContent } from "@/components/markdown-content";
 import { getMember } from "@/lib/auth/member";
 import { getEventBySlug, getPublishedEventDetailsBySlug } from "@/lib/event-data";
-import { button, displayHeading, kicker, shell, textLink } from "@/lib/tailwind";
+import { button, displayHeading, kicker, shell } from "@/lib/tailwind";
 
 type EventDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -58,8 +59,6 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
     redirect(`/profile/setup?returnTo=${encodeURIComponent(`/events/${slug}`)}`);
   }
 
-  const isArchived = event.status === "Archive";
-
   return (
     <main className="overflow-hidden">
       <section className={`${shell} pb-[90px] pt-[60px]`}>
@@ -76,14 +75,8 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         </div>
       </section>
 
-      <section className={`${shell} grid grid-cols-[1.15fr_0.65fr] items-start gap-[10vw] pb-[clamp(100px,12vw,170px)] max-[820px]:grid-cols-1 max-[820px]:gap-[60px]`}>
-        <article>
-          <p className={kicker}>About the day</p>
-          <h2 className={`${displayHeading} my-6 mb-[34px] text-[clamp(3rem,5vw,5.4rem)]`}>Good rooms. Great people. <em className="font-inherit not-italic text-brand-red">Shared obsessions.</em></h2>
-          <p>{event.description}</p>
-          <p className="mt-5">{isArchived ? "The event lives in the archive now, but the idea still drives the community: good people, a welcoming space and enough shared interests to keep the conversation going all day." : "The details will be shared with the community as soon as the next session is ready. Keep watch for the announcement and bring your favourite obsessions along."}</p>
-          <blockquote className="mt-[46px] border-l-[5px] border-brand-blue pl-6 font-display text-[clamp(1.8rem,3vw,3.2rem)] leading-none uppercase">{isArchived ? "“Come for the anime. Stay because you found your people.”" : "“Come for the community. Stay for what comes next.”"}</blockquote>
-        </article>
+      <section className={`${shell} grid items-start gap-[10vw] pb-[clamp(100px,12vw,170px)] ${event.content ? "grid-cols-[1.15fr_0.65fr] max-[820px]:grid-cols-1" : "grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)] max-[820px]:grid-cols-1"} max-[820px]:gap-[60px]`}>
+        {event.content ? <article><MarkdownContent content={event.content} /></article> : null}
         <aside className="bg-brand-paper-dark p-[30px]">
           <p className={kicker}>Event record</p>
           <dl className="my-[22px] mb-7">
@@ -100,19 +93,36 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             signedIn={Boolean(member)}
             slug={event.slug}
           />
-          <Link className={`${button} bg-brand-red text-white hover:bg-brand-coral`} href="/events">See upcoming plans <span>↗</span></Link>
+          {event.registrationUrl ? (
+            <a className={`${button} mt-4 bg-brand-blue text-brand-ink hover:bg-brand-paper`} href={event.registrationUrl} rel="noopener noreferrer" target="_blank">
+              {event.registrationLabel || "Register for event"} <span aria-hidden="true">↗</span><span className="sr-only"> (opens external registration site)</span>
+            </a>
+          ) : null}
+          <Link className={`${button} bg-brand-red text-white hover:bg-brand-coral`} href="/events">Explore all events <span>↗</span></Link>
         </aside>
       </section>
 
-      <section className={`${shell} mb-[clamp(90px,11vw,150px)] grid grid-cols-[1.25fr_0.75fr] items-center gap-[7vw] bg-brand-blue p-[42px] max-[820px]:grid-cols-1 max-[560px]:p-[22px]`}>
-        <div className="relative h-[470px] overflow-hidden max-[560px]:h-[320px]"><Image className="object-cover" src="/figma/home-05.jpg" alt="PH Otakus community members celebrating together" fill sizes="(max-width: 800px) 100vw, 60vw" /></div>
-        <div>
-          <p className={kicker}>Why it matters</p>
-          <h2 className={`${displayHeading} my-5 mb-7 text-[clamp(2.8rem,5vw,5.4rem)]`}>The room is the <em className="font-inherit not-italic text-brand-red">real headline.</em></h2>
-          <p className="mb-6">Events are where the culture becomes tangible. New friendships begin, creators find collaborators and people leave with more than a camera roll.</p>
-          <Link className={textLink} href="/gallery">Visit the archive <span>↗</span></Link>
-        </div>
-      </section>
+      {event.media.length > 0 ? (
+        <section className={`${shell} mb-[clamp(90px,11vw,150px)]`}>
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-4">
+            <p className={kicker}>Event media</p>
+            <p className="text-sm text-brand-ink-soft">{event.media.length} {event.media.length === 1 ? "item" : "items"}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
+            {event.media.map((media, index) => (
+              <figure className={`group ${index === 0 ? "col-span-2 max-[560px]:col-span-1" : ""}`} key={media.id}>
+                <div className={`relative overflow-hidden bg-brand-ink ${index === 0 ? "h-[min(60vw,680px)] max-[560px]:h-[360px]" : "h-[min(38vw,480px)] max-[560px]:h-[320px]"}`}>
+                  <Image className={`${media.type === "FLYER" ? "object-contain p-5" : "object-cover transition-transform duration-[420ms] group-hover:scale-[1.02]"}`} src={media.url} alt={media.alt} fill sizes={index === 0 ? "100vw" : "(max-width: 560px) 100vw, 50vw"} />
+                </div>
+                {media.caption || media.type === "FLYER" ? <figcaption className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[0.75rem] font-black tracking-[0.1em] uppercase">
+                    {media.type === "FLYER" ? <span className="text-brand-red">Flyer</span> : null}
+                    {media.caption ? <span>{media.caption}</span> : null}
+                  </figcaption> : null}
+              </figure>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <Newsletter />
     </main>

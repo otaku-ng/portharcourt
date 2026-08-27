@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db/prisma";
 import {
   createEventCoverUpload,
+  createEventMediaUpload,
   createImageUpload,
   getEventCoverImageExtension,
   getStorageConfigurationErrorMessage,
@@ -18,7 +19,7 @@ type PresignRequest = {
   ownerId?: unknown;
 };
 
-type UploadKind = "event-cover" | "gallery-image" | "story-cover";
+type UploadKind = "event-cover" | "event-media" | "gallery-image" | "story-cover";
 
 export async function POST(request: Request) {
   if (!(await requireAdmin())) {
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
   const kind = typeof body.kind === "string" ? body.kind : "event-cover";
   const ownerId = typeof body.ownerId === "string" ? body.ownerId.trim() : "";
 
-  if (!(["event-cover", "gallery-image", "story-cover"] as UploadKind[]).includes(kind as UploadKind)) {
+  if (!(["event-cover", "event-media", "gallery-image", "story-cover"] as UploadKind[]).includes(kind as UploadKind)) {
     return NextResponse.json({ error: "The upload type was invalid." }, { status: 400 });
   }
 
@@ -72,6 +73,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "The upload owner was invalid." }, { status: 400 });
     }
 
+    if (kind === "event-media") {
+      try {
+        const event = await prisma.event.findUnique({ where: { id: ownerId }, select: { id: true } });
+        if (!event) return NextResponse.json({ error: "Save the event before uploading media." }, { status: 400 });
+      } catch {
+        return NextResponse.json({ error: "The event could not be verified." }, { status: 500 });
+      }
+    }
+
     if (kind === "gallery-image") {
       try {
         const album = await prisma.galleryAlbum.findUnique({ where: { id: ownerId }, select: { id: true } });
@@ -81,12 +91,20 @@ export async function POST(request: Request) {
       }
     }
 
-    objectKey = `${kind === "gallery-image" ? "gallery" : "stories"}/${ownerId}/${randomUUID()}.${extension}`;
+    objectKey = kind === "event-media"
+      ? `events/${ownerId}/media/${randomUUID()}.${extension}`
+      : `${kind === "gallery-image" ? "gallery" : "stories"}/${ownerId}/${randomUUID()}.${extension}`;
   }
 
   try {
     return NextResponse.json(
-      await (kind === "event-cover" ? createEventCoverUpload(objectKey, contentType) : createImageUpload(objectKey, contentType)),
+      await (
+        kind === "event-cover"
+          ? createEventCoverUpload(objectKey, contentType)
+          : kind === "event-media"
+            ? createEventMediaUpload(objectKey, contentType, ownerId)
+            : createImageUpload(objectKey, contentType)
+      ),
     );
   } catch (error) {
     return NextResponse.json({ error: getStorageConfigurationErrorMessage(error) }, { status: 500 });

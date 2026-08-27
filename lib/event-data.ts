@@ -1,4 +1,4 @@
-import { Prisma, EventStatus, RsvpStatus } from "@prisma/client";
+import { EventMediaType, Prisma, EventStatus, RsvpStatus } from "@prisma/client";
 import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
 import { isEventRsvpOpen } from "@/lib/rsvp/repository";
@@ -19,10 +19,22 @@ export type PublicEvent = {
 };
 
 export type PublicEventDetails = PublicEvent & {
+  content: string | null;
+  registrationUrl: string | null;
+  registrationLabel: string | null;
+  media: PublicEventMedia[];
   goingCount: number;
   interestedCount: number;
   currentUserRsvp: RsvpStatus | null;
   rsvpOpen: boolean;
+};
+
+export type PublicEventMedia = {
+  id: string;
+  url: string;
+  alt: string;
+  caption: string | null;
+  type: EventMediaType;
 };
 
 const publicEventSelect = {
@@ -43,6 +55,13 @@ const publicEventSelect = {
 const publicEventDetailsSelect = {
   ...publicEventSelect,
   id: true,
+  content: true,
+  registrationUrl: true,
+  registrationLabel: true,
+  media: {
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: { id: true, url: true, alt: true, caption: true, type: true },
+  },
 } satisfies Prisma.EventSelect;
 
 type PublicEventRecord = Prisma.EventGetPayload<{
@@ -105,6 +124,16 @@ function toPublicEventDetails(
 
   return {
     ...base,
+    content: event.content,
+    registrationUrl: event.registrationUrl,
+    registrationLabel: event.registrationLabel,
+    media: event.media.map((media) => ({
+      id: media.id,
+      url: media.url,
+      alt: media.alt,
+      caption: media.caption,
+      type: media.type,
+    })),
     goingCount,
     interestedCount,
     currentUserRsvp,

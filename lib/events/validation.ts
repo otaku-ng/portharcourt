@@ -6,6 +6,23 @@ const optionalText = (max: number) =>
     z.string().trim().max(max).nullable(),
   );
 
+const optionalHttpUrl = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+  z
+    .string()
+    .trim()
+    .url("Enter a valid registration URL.")
+    .refine((value) => {
+      try {
+        const protocol = new URL(value).protocol;
+        return protocol === "http:" || protocol === "https:";
+      } catch {
+        return false;
+      }
+    }, "Registration links must use http:// or https://.")
+    .nullable(),
+);
+
 const optionalDateTime = z.preprocess(
   (value) => {
     if (typeof value !== "string" || value.trim() === "") return null;
@@ -21,6 +38,9 @@ export const eventFormSchema = z
     slug: optionalText(100),
     eyebrow: z.string().trim().min(1, "Eyebrow is required.").max(100),
     description: z.string().trim().min(1, "Description is required.").max(5000),
+    content: optionalText(50000),
+    registrationUrl: optionalHttpUrl,
+    registrationLabel: optionalText(80),
     startAt: optionalDateTime,
     endAt: optionalDateTime,
     dateLabel: optionalText(100),
@@ -32,6 +52,16 @@ export const eventFormSchema = z
     coverImageAlt: z.string().trim().min(1, "Cover image alt text is required.").max(240),
     status: z.enum(["UPCOMING", "ARCHIVED"]),
     published: z.boolean(),
+    media: z.array(
+      z.object({
+        clientId: z.string().trim().min(1).max(500).optional(),
+        id: z.string().trim().min(1).max(100).optional(),
+        objectKey: z.string().trim().max(500).optional(),
+        alt: z.string().trim().min(1, "Alt text is required.").max(240),
+        caption: optionalText(500),
+        type: z.enum(["IMAGE", "FLYER"]),
+      }),
+    ).max(100, "An event can have no more than 100 media items."),
   })
   .superRefine((value, context) => {
     if (value.startAt && value.endAt && value.endAt < value.startAt) {
@@ -56,6 +86,9 @@ export function parseEventForm(formData: FormData) {
     slug: getString(formData, "slug"),
     eyebrow: getString(formData, "eyebrow"),
     description: getString(formData, "description"),
+    content: getString(formData, "content"),
+    registrationUrl: getString(formData, "registrationUrl"),
+    registrationLabel: getString(formData, "registrationLabel"),
     startAt: getString(formData, "startAt"),
     endAt: getString(formData, "endAt"),
     dateLabel: getString(formData, "dateLabel"),
@@ -67,7 +100,18 @@ export function parseEventForm(formData: FormData) {
     coverImageAlt: getString(formData, "coverImageAlt"),
     status: getString(formData, "status"),
     published: formData.get("published") === "on",
+    media: parseMediaInput(getString(formData, "media")),
   });
+}
+
+function parseMediaInput(value: string): unknown {
+  if (!value.trim()) return [];
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
 }
 
 export { normalizeSlug } from "@/lib/slug";

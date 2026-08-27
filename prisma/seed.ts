@@ -11,6 +11,8 @@ const events = [
     eyebrow: "Community meetup",
     description:
       "A relaxed day for anime fans, gamers, manga readers and cosplayers to meet, trade recommendations and enjoy the city together.",
+    content:
+      "## A relaxed day in the city\n\nAnime fans, gamers, manga readers and cosplayers gathered for an easygoing day at Pleasure Park. The plan was simple: meet people who already speak the language of fandom, swap recommendations and make room for new conversations.\n\n## What the day was about\n\n- Anime and manga recommendations\n- Gaming and friendly competition\n- Cosplay conversations\n- Meeting other fans in Port Harcourt\n\nThe best parts happened between the planned moments — the introductions, side conversations and discoveries that made the hangout feel like a community day.",
     startAt: new Date("2022-09-17T10:00:00.000Z"),
     endAt: null,
     dateLabel: null,
@@ -28,6 +30,8 @@ const events = [
     eyebrow: "Convention",
     description:
       "A celebration of comics, games, cosplay and the creators building fandom culture in Port Harcourt.",
+    content:
+      "## About Nerd Work Comic Con\n\nNerd Work Comic Con brought comics, games, cosplay and creator culture together in Port Harcourt. It was a space for fans to discover new work, celebrate the characters they love and meet the people building local fandom culture.\n\n## What to expect\n\n- Comics and illustrated stories\n- Gaming and tournaments\n- Cosplay and fan culture\n- Local creators and community conversations\n\nThe event is now part of the PH Otakus archive — a record of the rooms, ideas and people that helped shape the community.",
     startAt: null,
     endAt: null,
     dateLabel: "2022 archive",
@@ -45,6 +49,8 @@ const events = [
     eyebrow: "Announcements soon",
     description:
       "Watch this space for the next hangout, watch party or tournament from the PH Otakus crew.",
+    content:
+      "## Details coming soon\n\nThe next PH Otakus session is still taking shape. Check back for the date, venue and full programme once the community announcement is ready.\n\nIf you have an idea for a hangout, watch party or tournament, bring it to the crew and help shape what comes next.",
     startAt: null,
     endAt: null,
     dateLabel: "Date to be announced",
