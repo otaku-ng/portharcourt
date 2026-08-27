@@ -28,10 +28,19 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
   return {
     title: event.title,
     description: event.description,
+    alternates: { canonical: `/events/${event.slug}` },
     openGraph: {
       title: event.title,
       description: event.description,
+      siteName: "PH Otakus",
+      url: `/events/${event.slug}`,
       images: [{ url: event.image, alt: event.alt }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: event.title,
+      description: event.description,
+      images: [event.image],
     },
   };
 }

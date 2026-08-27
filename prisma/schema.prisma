@@ -140,6 +140,7 @@ model Profile {
   currentlyReading  String?
   currentlyPlaying  String?
   profileCompleted  Boolean  @default(false)
+  isPublic          Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

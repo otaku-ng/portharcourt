@@ -15,6 +15,7 @@ import { button, displayHeading, kicker, sectionPadding, shell } from "@/lib/tai
 export const metadata: Metadata = {
   title: "Members",
   description: "Discover the public member directory for the PH Otakus community in Port Harcourt.",
+  alternates: { canonical: "/community/members" },
 };
 
 export const dynamic = "force-dynamic";
@@ -173,4 +174,3 @@ function getPaginationPages(currentPage: number, totalPages: number): Array<numb
   if (currentPage >= totalPages - 3) return [1, "ellipsis", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
   return [1, "ellipsis", currentPage - 1, currentPage, currentPage + 1, "ellipsis", totalPages];
 }
-

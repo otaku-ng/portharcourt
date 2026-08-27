@@ -9,6 +9,7 @@ import { button, displayHeading, kicker, sectionPadding, shell } from "@/lib/tai
 export const metadata: Metadata = {
   title: "Events",
   description: "Community events, meetups and the PH Otakus archive in Port Harcourt.",
+  alternates: { canonical: "/events" },
 };
 
 export const dynamic = "force-dynamic";

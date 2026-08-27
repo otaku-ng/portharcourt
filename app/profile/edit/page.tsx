@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { AccountDangerZone } from "@/components/account-danger-zone";
 import { ProfileForm } from "@/components/profile-form";
 import { requireMember } from "@/lib/auth/member";
 import { getEditableProfileByUserId } from "@/lib/profiles/repository";
@@ -25,6 +26,7 @@ export default async function EditProfilePage() {
           <p className={kicker}><span className="text-brand-red">Your profile</span> Keep it current</p>
           <h1 className={`${displayHeading} mt-5 text-[clamp(4rem,9vw,9rem)]`}>Edit your <em className="font-inherit not-italic text-brand-red">identity.</em></h1>
           <div className="mt-12"><ProfileForm fallbackAvatar={member.user.image} initial={toProfileFormValues(profile)} mode="edit" /></div>
+          <div className="mt-24"><AccountDangerZone /></div>
         </div>
       </section>
     </main>

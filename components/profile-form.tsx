@@ -148,6 +148,19 @@ export function ProfileForm({ initial, mode, fallbackAvatar = null }: { initial:
       </label>
 
       <fieldset className="border-t border-[var(--line)] pt-6">
+        <legend className="text-[0.7rem] font-black tracking-[0.12em] uppercase">Profile visibility</legend>
+        <input name="isPublic" type="hidden" value="false" />
+        <label className="mt-4 flex cursor-pointer items-start gap-3 border border-[var(--line)] bg-white px-4 py-4 text-sm">
+          <input className="mt-1 size-4 shrink-0 accent-brand-red" defaultChecked={initial.isPublic} name="isPublic" type="checkbox" value="true" />
+          <span>
+            <span className="block font-black">Public profile</span>
+            <span className="mt-1 block text-brand-ink-soft">Show my profile in the PH Otakus member directory and let people visit /members/{"{username}"}.</span>
+          </span>
+        </label>
+        {errorFor("isPublic") ? <p className="mt-3 text-xs text-brand-red" role="alert">{errorFor("isPublic")}</p> : null}
+      </fieldset>
+
+      <fieldset className="border-t border-[var(--line)] pt-6">
         <legend className="text-[0.7rem] font-black tracking-[0.12em] uppercase">Interests</legend>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {INTEREST_OPTIONS.map((interest) => <label className="flex cursor-pointer items-center gap-3 border border-[var(--line)] bg-white px-4 py-3 text-sm transition-colors has-[:checked]:border-brand-red has-[:checked]:bg-brand-blue" key={interest}><input className="size-4 accent-brand-red" defaultChecked={initial.interests.includes(interest)} name="interests" type="checkbox" value={interest} /><span>{interest}</span></label>)}

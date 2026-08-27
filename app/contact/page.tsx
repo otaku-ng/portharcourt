@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Join, collaborate with or contact the PH Otakus community in Port Harcourt.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

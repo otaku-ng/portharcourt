@@ -71,6 +71,7 @@ export const profileSchema = z.object({
   currentlyWatching: optionalText(120),
   currentlyReading: optionalText(120),
   currentlyPlaying: optionalText(120),
+  isPublic: z.boolean(),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema> & {
@@ -103,6 +104,7 @@ export function toProfileFormValues(value: {
   currentlyWatching?: string | null;
   currentlyReading?: string | null;
   currentlyPlaying?: string | null;
+  isPublic?: boolean;
 }): ProfileFormValues {
   return {
     username: value.username,
@@ -127,12 +129,17 @@ export function toProfileFormValues(value: {
     currentlyWatching: value.currentlyWatching ?? null,
     currentlyReading: value.currentlyReading ?? null,
     currentlyPlaying: value.currentlyPlaying ?? null,
+    isPublic: value.isPublic ?? true,
   };
 }
 
 function getString(formData: FormData, name: string): string {
   const value = formData.get(name);
   return typeof value === "string" ? value : "";
+}
+
+function getCheckbox(formData: FormData, name: string): boolean {
+  return formData.getAll(name).some((value) => value === "true" || value === "on");
 }
 
 export function parseProfileForm(formData: FormData) {
@@ -155,6 +162,7 @@ export function parseProfileForm(formData: FormData) {
     currentlyWatching: getString(formData, "currentlyWatching"),
     currentlyReading: getString(formData, "currentlyReading"),
     currentlyPlaying: getString(formData, "currentlyPlaying"),
+    isPublic: getCheckbox(formData, "isPublic"),
   });
 }
 

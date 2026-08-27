@@ -18,10 +18,19 @@ export async function generateMetadata({ params }: GalleryDetailPageProps): Prom
   return {
     title: album.title,
     description: album.description ?? `Images from ${album.title}.`,
+    alternates: { canonical: `/gallery/${album.slug}` },
     openGraph: {
       title: album.title,
       description: album.description ?? `Images from ${album.title}.`,
+      siteName: "PH Otakus",
+      url: `/gallery/${album.slug}`,
       images: album.images[0] ? [{ url: album.images[0].url, alt: album.images[0].alt }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: album.title,
+      description: album.description ?? `Images from ${album.title}.`,
+      images: album.images[0] ? [album.images[0].url] : ["/figma/home-05.jpg"],
     },
   };
 }

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { CREATOR_TYPE_OPTIONS, INTEREST_OPTIONS } from "@/lib/profiles/validation";
 
@@ -38,6 +38,7 @@ const memberUserSelect = {
       interests: true,
       creatorType: true,
       profileCompleted: true,
+      isPublic: true,
     },
   },
 } as const;
@@ -76,13 +77,46 @@ export type PublicMembersResult = {
 
 export type MemberRecord = Awaited<ReturnType<typeof getMemberById>>;
 
+export class LastSuperAdminDeletionError extends Error {
+  constructor() {
+    super("The final super admin account cannot be deleted. Promote another super admin first.");
+    this.name = "LastSuperAdminDeletionError";
+  }
+}
+
 export async function getMemberById(id: string) {
   return prisma.user.findUnique({ where: { id }, select: memberUserSelect });
 }
 
+export async function assertMemberAccountCanBeDeleted(userId: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (!user) throw new Error("Your member account could not be found.");
+  if (user.role !== UserRole.SUPER_ADMIN) return;
+
+  const superAdminCount = await prisma.user.count({ where: { role: UserRole.SUPER_ADMIN } });
+  if (superAdminCount <= 1) throw new LastSuperAdminDeletionError();
+}
+
+export async function deleteMemberAccount(userId: string): Promise<void> {
+  await prisma.$transaction(async (transaction) => {
+    const user = await transaction.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    });
+    if (!user) throw new Error("Your member account could not be found.");
+
+    if (user.role === UserRole.SUPER_ADMIN) {
+      const superAdminCount = await transaction.user.count({ where: { role: UserRole.SUPER_ADMIN } });
+      if (superAdminCount <= 1) throw new LastSuperAdminDeletionError();
+    }
+
+    await transaction.user.delete({ where: { id: user.id } });
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+}
+
 function buildWhere({ q, interest, creator }: GetPublicMembersOptions): Prisma.ProfileWhereInput {
   const search = q?.trim();
-  const filters: Prisma.ProfileWhereInput[] = [{ profileCompleted: true }];
+  const filters: Prisma.ProfileWhereInput[] = [{ profileCompleted: true, isPublic: true }];
 
   if (search) {
     filters.push({
@@ -145,4 +179,12 @@ export async function getPublicMembers(options: GetPublicMembersOptions = {}): P
     pageSize,
     totalPages,
   };
+}
+
+export async function getPublicMemberSitemapEntries(): Promise<Array<{ username: string; updatedAt: Date }>> {
+  return prisma.profile.findMany({
+    where: { profileCompleted: true, isPublic: true },
+    orderBy: { updatedAt: "desc" },
+    select: { username: true, updatedAt: true },
+  });
 }

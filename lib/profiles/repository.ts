@@ -24,6 +24,7 @@ const memberProfileSelect = {
   currentlyReading: true,
   currentlyPlaying: true,
   profileCompleted: true,
+  isPublic: true,
 } satisfies Prisma.ProfileSelect;
 
 const editableProfileSelect = {
@@ -50,6 +51,7 @@ const editableProfileSelect = {
   currentlyReading: true,
   currentlyPlaying: true,
   profileCompleted: true,
+  isPublic: true,
 } satisfies Prisma.ProfileSelect;
 
 const memberUserSelect = {
@@ -128,6 +130,7 @@ export type MemberProfile = {
   currentlyWatching: string | null;
   currentlyReading: string | null;
   currentlyPlaying: string | null;
+  isPublic: boolean;
   events: MemberEventActivity[];
   badges: Array<{
     key: string;
@@ -196,6 +199,7 @@ function toMemberProfile(user: MemberUserRecord): MemberProfile | null {
     currentlyWatching: user.profile.currentlyWatching,
     currentlyReading: user.profile.currentlyReading,
     currentlyPlaying: user.profile.currentlyPlaying,
+    isPublic: user.profile.isPublic,
     events,
     badges: user.badges.map(({ awardedAt, badge }) => ({ ...badge, awardedAt })),
   };
@@ -208,7 +212,7 @@ export async function getMemberProfileByUserId(userId: string): Promise<MemberPr
 
 export async function getMemberProfileByUsername(username: string): Promise<MemberProfile | null> {
   const user = await prisma.user.findFirst({
-    where: { profile: { is: { username: username.trim().toLowerCase() } } },
+    where: { profile: { is: { username: username.trim().toLowerCase(), profileCompleted: true, isPublic: true } } },
     select: memberUserSelect,
   });
   return user ? toMemberProfile(user) : null;
@@ -241,6 +245,7 @@ export async function updateProfile(userId: string, data: {
   currentlyWatching: string | null;
   currentlyReading: string | null;
   currentlyPlaying: string | null;
+  isPublic: boolean;
 }) {
   return prisma.profile.upsert({
     where: { userId },
